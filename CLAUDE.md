@@ -1,768 +1,173 @@
 # Global Claude Code Talimatları
 
 ## Temel Kurallar
-- Bana sormadan derleme yapma ve test yazma
-- Uygun aracı/plugin'i sormadan otomatik kullan
-- Skill uygunsa direkt invoke et
-- MCP aracı gerekiyorsa direkt çağır
-- Sadece ciddi belirsizlik varsa sor
 
-### 🧪 Test Politikası
-| İşlem | İzin | Açıklama |
+| Kural | Detay |
+|-------|-------|
+| Test/Build | Kullanıcı izni gerekli - sormadan yapma |
+| Derleme | Kullanıcı izni gerekli |
+| Tool seçimi | Uygun tool'u sormadan kullan |
+| Skill | Uygunsa direkt invoke et |
+| Soru sorma | Sadece ciddi belirsizlik varsa |
+
+### Güvenlik - ASLA Commit Etme
+```
+.env, .env.local, .env.production
+credentials.json, secrets.yaml
+*_secret*, *_key*, *_token*
+application-prod.yml
+*.pem, *.key
+```
+
+**Uyarı ver:** Hardcoded password/API key, güvenli olmayan HTTP, SQL injection riski
+
+---
+
+## Tool Seçimi
+
+**Prensip:** Anahtar kelime arama, kullanıcının kastını anla.
+
+| Niyet | Tool | Tracking |
 |-------|------|----------|
-| Test YAZMA | ❌ Sorma | Kullanıcı isterse yaz |
-| Test ÇALIŞTIRMA | ❌ Sorma | Kullanıcı isterse çalıştır |
-| Build ÇALIŞTIRMA | ❌ Sorma | Kullanıcı isterse çalıştır |
+| Yeni işlevsellik eklemek istiyor | `/sc:implement` | TodoWrite |
+| Bir şey bozuk/yanlış çalışıyor | `/sc:troubleshoot` | TodoWrite |
+| Versiyon kontrolü işlemi | `/sc:git` | - |
+| Kodu anlamak/incelemek istiyor | `/sc:analyze` | - |
+| Test ile ilgili bir şey | `/sc:test` | TodoWrite |
+| Kodu iyileştirmek istiyor | refactoring | TodoWrite |
+| Çok adımlı/karmaşık iş | `planning-with-files` | + serena |
+| Büyük değişiklik/taşıma | planning-with-files + serena | Hepsi |
 
-**KURAL:** Test, build, derleme → HEPSİ için kullanıcıdan izin al!
-
-### 🔐 Güvenlik Kuralları
-```
-ASLA COMMIT ETME:
-├─ .env, .env.local, .env.production
-├─ credentials.json, secrets.yaml
-├─ *_secret*, *_key*, *_token*
-├─ application-prod.yml (hassas config)
-└─ private key dosyaları (*.pem, *.key)
-
-UYARI VER:
-├─ Hardcoded password/API key görürsen
-├─ Güvenli olmayan HTTP endpoint
-└─ SQL injection riski
-```
+**Örnek:**
+- "Şu buton çalışmıyor" → Bug (troubleshoot), "buton" kelimesine takılma
+- "Login ekle" → Feature (implement), kısa olması önemsiz
+- "Şunu bi bak" → Muhtemelen analiz veya debug, bağlamdan anla
 
 ---
 
-## 🚀 SESSION BAŞLANGIÇ CHECKLIST (HER KONUŞMADA ÇALIŞTIR!)
+## Session Akışı
 
-**İlk mesajı aldığımda HEMEN şunları yap:**
-
+### Başlangıç
 ```
-□ 1. serena list_memories → Proje hafızası var mı?
-□ 2. serena read_memory (varsa) → Context yükle
-□ 3. Bakım kontrolü → "last-maintenance-*" memory'si var mı?
-   └─ 7 günden eski veya yok → Otomatik bakım çalıştır (aşağıda)
-□ 4. Proje yapısını tanı (ls, package.json, build.gradle, etc.)
-□ 5. Önceki task_plan.md var mı? → Devam mı, yeni mi?
+1. serena list_memories → Proje hafızası var mı?
+2. serena read_memory (varsa) → Context yükle
+3. task_plan.md var mı? → Yarım görev varsa bildir
 ```
 
-**NOT:** Bu checklist sessizce çalıştır, kullanıcıya sadece önemli sorunları bildir!
-
----
-
-## 🧠 Hafıza Hiyerarşisi (ÖNEMLİ)
-
-```
-SERENA MEMORIES     → Proje bazlı context (mimari, kararlar)
-       ↓
-CLAUDE-MEM          → Global öğrenmeler (patterns, best practices)
-       ↓                ⚠️ BUG: observation kaydetmiyor!
-PLANNING-WITH-FILES → Kompleks görev tracking (task_plan.md)
-       ↓
-TODOWRITE           → Anlık progress (session-only)
-```
-
-**⚠️ claude-mem Workaround:**
-claude-mem bug'lı olduğu için global öğrenmeleri de `serena memories`'e kaydet:
-- Memory adı: `global-learnings-YYYY-MM` (aylık)
-- İçerik: Patterns, best practices, cross-project insights
-
-### Ne Zaman Hangisi?
-
-| Durum | Aksiyon |
-|-------|---------|
-| Proje ile çalışmaya başladım | `serena read_memory` (varsa) |
-| 3+ adımlı kompleks görev | `planning-with-files` oluştur |
-| Her görevde | `TodoWrite` kullan |
-| Önemli pattern/karar öğrendim | `claude-mem` save |
-| Milestone tamamlandı | `serena write_memory` + `claude-mem` save |
-| Kullanıcı "bitti/tamam" dedi | Her ikisine kaydet |
-
----
-
-## 🔄 Session Yaşam Döngüsü
-
-### Kullanıcı "yeni proje/başla" dediğinde:
-```
-1. serena check_onboarding_performed → İlk kez mi?
-   ├─ İlk kez → Onboarding akışını başlat (aşağıda)
-   └─ Değil → serena read_memory → Context yükle
-2. Proje yapısını tanı (Java/Python/Node/etc.)
-3. Kompleks görevse → planning-with-files başlat
-```
-
-### 🆕 Yeni Proje Onboarding Akışı
-```
-1. serena onboarding → Proje yapısını öğren
-2. Kullanıcıya sor: "Projenin amacı nedir? Ana teknolojiler?"
-3. repomix çalıştır → Baseline oluştur
-4. serena write_memory → Onboarding bilgilerini kaydet:
-   - Proje amacı
-   - Teknoloji stack (Java/Spring, Node/Express, etc.)
-   - Önemli dizinler (src/main, tests/, etc.)
-   - Build/test komutları
-5. Bildir: "✅ Proje onboarding tamamlandı"
-```
-
-### Çalışma sırasında:
-```
+### Çalışma
 - TodoWrite ile progress track et
-- Her 2 işlemden sonra bulguları dosyaya yaz (planning-with-files)
+- 5+ adımlı görevde → planning-with-files başlat
 - Önemli kararları not al
-```
 
-### 🔁 Multi-Session Devam (Önceki görev yarım kaldıysa)
+### Milestone Sonrası (Otomatik Kaydet)
+Commit/PR/Test pass/Major refactoring sonrası:
 ```
-1. Session başında task_plan.md kontrol et
-2. Varsa ve tamamlanmamışsa:
-   - progress.md oku → Son durum neydi?
-   - Kullanıcıya bildir: "Yarım kalan görev var: [özet]. Devam edelim mi?"
-   - Evet → Kaldığı yerden devam
-   - Hayır → task_plan.md arşivle (task_plan_YYYY-MM-DD.md)
-3. findings.md'yi oku → Önceki bulgular
-4. Kaldığı fazdan devam et
-```
-
-### Kullanıcı "bitti/tamam/son" dediğinde:
-```
-1. serena write_memory → Proje context kaydet
-2. global-learnings → Önemli pattern/kararlar (serena'ya)
-3. repomix → Major değişiklik varsa çalıştır
-```
-
-### 🔔 OTOMATİK KAYIT (kullanıcı unutursa)
-
-**Milestone sonrası otomatik kaydet:**
-- ✅ git commit/push başarılı → serena write_memory
-- ✅ PR oluşturuldu → serena write_memory
-- ✅ Tüm testler geçti → serena write_memory
-- ✅ Major refactoring tamamlandı → serena write_memory
-
-**Hatırlatma tetikleyicileri:**
-- 10+ tool kullanımı sonrası → "Session'ı kaydetmek ister misin?"
-- Büyük görev tamamlandı → "Bitti mi, devam mı?"
-- Context dolmaya yakın → Aşağıdaki akışı başlat
-
-### 📦 Context Overflow Handling
-```
-Context %80+ dolduğunda:
-1. Mevcut durumu özetle
-2. serena write_memory → Kritik context'i kaydet
-3. planning-with-files güncelle → progress.md yaz
-4. Kullanıcıya bildir:
-   "Context dolmak üzere. Durumu kaydettim.
-    Yeni session'da devam edebiliriz."
-5. Devam kararı kullanıcıda
-```
-
-**NOT:** Milestone'larda SORMADAN kaydet, sadece bildir:
-```
-✅ Commit başarılı. Session context'i serena'ya kaydedildi.
+serena write_memory → Bildir: "Context kaydedildi"
 ```
 
 ---
 
-## 📁 Kompleks Görev Yönetimi (planning-with-files)
+## Tracking Seçimi
 
-**3+ adımlı görevlerde OTOMATİK başlat:**
-
-```
-1. task_plan.md oluştur  → Fazlar, hedefler, kararlar
-2. findings.md oluştur   → Araştırma bulguları
-3. progress.md oluştur   → Session log, hatalar
-```
-
-**Kurallar:**
-- Her 2 işlemden sonra bulguları dosyaya yaz
-- Karar vermeden önce plan dosyasını oku
-- Her hatayı logla, 3 denemeden sonra kullanıcıya sor
-- Faz tamamlandığında durumu güncelle
+| Görev Tipi | TodoWrite | planning-with-files | serena |
+|------------|-----------|---------------------|--------|
+| Basit (1-2 adım) | Evet | Hayır | Hayır |
+| Orta (3-5 adım) | Evet | Opsiyonel | Hayır |
+| Kompleks (5+) | Evet | Evet | Milestone'da |
+| Multi-session | Evet | Evet | Evet |
 
 ---
 
-## 🎯 Akıllı Tetikleyiciler
+## MCP Sunucuları
 
-### Yüksek Güvenilirlik (Direkt tetikle)
+| MCP | Durum | Ana Kullanım |
+|-----|-------|--------------|
+| serena | Aktif | Semantic analiz, memory |
+| chrome-devtools | Aktif | Browser debug |
+| git-mcp | Aktif | GitHub docs |
+| claude-flow | Aktif | Multi-agent |
+| dbhub | Otomatik | Database |
+| claude-mem | Opsiyonel | Global memory (sorunlu) |
 
-| Kullanıcı Dediğinde | Aksiyon |
-|---------------------|---------|
-| "yeni özellik ekle", "feature implement et" | `/sc:brainstorm` → `/sc:implement` |
-| "bug var", "hata düzelt", "çalışmıyor" | `/sc:troubleshoot` |
-| "commit yap", "push et", "PR oluştur" | `/sc:git` |
-| "test yaz", "test çalıştır", "coverage" | `/sc:test` |
-| "refactor et", "kodu temizle" | `/sc:analyze` → refactoring |
-| "migration yap", "taşı", "dönüştür" | `planning-with-files` + `serena` |
-| "güvenlik kontrolü", "security scan" | `security-scanning` |
-| "analiz et", "kod review" | `/sc:analyze` + `serena` |
-
-### Düşük Güvenilirlik (Bağlam gerekir)
-
-| Tek Kelime | Tetikleme | Neden |
-|------------|-----------|-------|
-| "ekle" | ❌ Hayır | "yorum ekle" vs "feature ekle" farklı |
-| "fix" | ❌ Hayır | "typo fix" vs "bug fix" farklı |
-| "test" | ❌ Hayır | "test et" vs "test yaz" farklı |
+> Detaylar: `~/.claude/docs/mcp-reference.md`
 
 ---
 
-## 🔧 Aktif MCP Sunucuları (GLOBAL - Tüm Projeler)
+## Pluginler ve Agents
 
-**Config:** `~/.claude/mcp.json` (proje bazlı config KULLANMA!)
-
-### serena (oraios/serena)
-**Repo:** https://github.com/oraios/serena
-**Durum:** ✅ Aktif
-
-**Ne yapar:**
-- Semantic kod analizi (LSP tabanlı)
-- Symbol-level okuma/yazma/refactoring
-- Proje bazlı memory sistemi
-- Cross-reference bulma
-- Otomatik onboarding
-
-**Araçlar:**
-| Tool | Açıklama |
-|------|----------|
-| `find_symbol` | İsimle symbol bul |
-| `find_referencing_symbols` | Reference'ları bul |
-| `get_symbols_overview` | Dosya symbol özeti |
-| `replace_symbol_body` | Symbol içeriği değiştir |
-| `insert_before/after_symbol` | Kod ekle |
-| `rename_symbol` | Codebase-wide rename |
-| `search_for_pattern` | Regex ile ara |
-| `read/write/list_memory` | Proje hafızası |
-
----
-
-### chrome-devtools-mcp (ChromeDevTools/chrome-devtools-mcp)
-**Repo:** https://github.com/ChromeDevTools/chrome-devtools-mcp
-**Durum:** ✅ Aktif
-
-**Ne yapar:**
-- Browser otomasyon ve debug
-- Screenshot ve DOM snapshot
-- Network analizi
-- Performance trace
-- Console log okuma
-
-**Araçlar:**
-| Tool | Açıklama |
-|------|----------|
-| `take_snapshot` | A11y tree text snapshot |
-| `take_screenshot` | Sayfa/element screenshot |
-| `click`, `fill`, `hover` | Input otomasyon |
-| `navigate_page` | URL navigasyon |
-| `list_network_requests` | Network istekleri |
-| `list_console_messages` | Console logları |
-| `evaluate_script` | JS çalıştır |
-| `performance_start/stop_trace` | Performance analiz |
-| `emulate` | Device/network emülasyon |
-
----
-
-### git-mcp (gitmcp.io)
-**URL:** https://gitmcp.io/docs
-**Durum:** ✅ Aktif
-
-**Ne yapar:**
-- GitHub repo dokümantasyonu fetch
-- Kod arama
-- Library → owner/repo eşleştirme
-
-**Araçlar:**
-| Tool | Açıklama |
-|------|----------|
-| `fetch_generic_documentation` | Repo docs çek |
-| `search_generic_documentation` | Docs'ta ara |
-| `search_generic_code` | Kod ara |
-| `fetch_generic_url_content` | URL içeriği çek |
-| `match_common_libs_owner_repo_mapping` | Library → repo eşle |
-
----
-
-### claude-flow (ruvnet/claude-flow)
-**Repo:** https://github.com/ruvnet/claude-flow
-**Durum:** ✅ Aktif
-
-**Ne yapar:**
-- Multi-agent orkestrasyon
-- Swarm intelligence
-- RAG entegrasyonu
-- Parallel agent spawning
-
-**Öne çıkan özellikler:**
-- 100+ MCP tool
-- Dynamic Agent Architecture (DAA)
-- 50-100x in-process MCP performans
-- Persistent memory
-
----
-
-### dbhub (bytebase/dbhub)
-**Repo:** https://github.com/bytebase/dbhub
-**Durum:** 🔄 Otomatik config
-
-**Ne yapar:**
-- Database bağlantısı (PostgreSQL, MySQL, SQLite, SQL Server, MariaDB)
-- SQL query çalıştırma
-- Schema exploration
-- Multi-database desteği
-
-**Araçlar:**
-| Tool | Açıklama |
-|------|----------|
-| `execute_sql` | SQL çalıştır |
-| `search_objects` | Schema/table/column ara |
-
----
-
-### claude-mem (thedotmack/claude-mem)
-**Repo:** https://github.com/thedotmack/claude-mem
-**Versiyon:** 9.0.4 (en güncel)
-**Durum:** ⚠️ Sorunlu (aşağıya bak)
-
-**Ne yapar:**
-- Session observation capture
-- AI-powered context compression
-- Semantic search across sessions
-- ChromaDB vector storage
-
-**Bilinen sorunlar (v9.0.4):**
-- Worker startup race condition (bazı sistemlerde)
-- Observation'lar bazen kaydedilmiyor
-
-**Workaround:**
-```bash
-# Worker'ı manuel başlat
-bun ~/.claude/plugins/cache/thedotmack/claude-mem/9.0.4/scripts/worker-service.cjs start
-
-# DB kontrolü
-sqlite3 ~/.claude-mem/claude-mem.db "SELECT COUNT(*) FROM observations"
-```
-
-**Alternatif:** `serena memories` kullan (daha stabil)
-
-### dbhub Otomatik Konfigürasyon
-
-Proje ile çalışırken database işlemi gerekirse:
-
-1. **Config dosyalarını tara:**
-   ```
-   application.yml, application.properties, .env,
-   docker-compose.yml, config/*.yml, src/main/resources/*.yml
-   ```
-
-2. **DSN çıkar:**
-   - `spring.datasource.url` → MySQL/PostgreSQL
-   - `MYSQL_*`, `POSTGRES_*` → Docker env vars
-   - `DATABASE_URL` → .env
-
-3. **dbhub ekle (tek sefer):**
-   ```bash
-   claude mcp add dbhub -- npx -y @bytebase/dbhub --dsn "DSN_BURAYA"
-   ```
-
-4. **serena memory'e kaydet:** "dbhub configured for [project]"
-
----
-
-## ⚠️ Tek Seferlik İşlemler (Tekrarlama!)
-
-Bu işlemler proje başına BİR KEZ yapılır, her session'da tekrarlanmaz:
-
-| İşlem | Kontrol Yöntemi | Kayıt Yeri |
-|-------|-----------------|------------|
-| dbhub DSN config | `claude mcp list \| grep dbhub` | MCP config |
-| Proje onboarding | `serena check_onboarding_performed` | serena |
-| repomix baseline | `repomix-output.txt` var mı | Filesystem |
-| Initial git setup | `.git` klasörü var mı | Filesystem |
-| npm/gradle dependency | `node_modules/`, `build/` var mı | Filesystem |
-
-**Kural:** İşlem yapmadan önce zaten yapılmış mı kontrol et!
-
----
-
-## 📦 Pluginler
-
-### 🎯 ARAÇ HİYERARŞİSİ (ÖNEMLİ!)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  SUPERPOWERS (Discipline Layer)                             │
-│  "NASIL yapılacak" - Workflow kuralları, disiplin           │
-│  → Önce invoke et, sonra diğerlerini çalıştır               │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│  SC COMMANDS + SUPERCLAUDE AGENTS (Execution Layer)         │
-│  "NE yapılacak" - Gerçek iş, kod yazma, analiz              │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│  TRACKING LAYER                                             │
-│  TodoWrite: Session-only, anlık progress                    │
-│  planning-with-files: Persistent, 3+ adımlı kompleks        │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Çakışan Araçlar - Hangisini Kullan:**
-
-| Durum | Superpowers | SC Command | Birlikte? |
-|-------|-------------|------------|-----------|
-| Yeni feature | `brainstorming` | `/sc:brainstorm` | Önce superpowers → sonra /sc |
-| Bug fix | `systematic-debugging` | `/sc:troubleshoot` | Önce superpowers → sonra /sc |
-| Plan yazma | `writing-plans` | `/sc:design` | Önce superpowers → sonra /sc |
-| Kod yazma | `test-driven-development` | `/sc:implement` | Önce superpowers → sonra /sc |
-| Bitirme | `verification-before-completion` | `/sc:git` | Önce superpowers → sonra /sc |
-
-**Tracking Seçimi:**
-
-| Görev Tipi | TodoWrite | planning-with-files |
-|------------|-----------|---------------------|
-| Basit (1-2 adım) | ✅ | ❌ |
-| Orta (3-5 adım) | ✅ | Opsiyonel |
-| Kompleks (5+ adım) | ✅ | ✅ Zorunlu |
-| Multi-session | ✅ | ✅ Zorunlu |
-
-**Kural:** TodoWrite HER ZAMAN kullan. planning-with-files sadece kompleks görevlerde.
-
----
-
-### SuperClaude (/sc:*)
-| Komut | Ne Zaman |
-|-------|----------|
-| `/sc:brainstorm` | Yeni özellik başlangıcı |
-| `/sc:implement` | Kod yazma |
-| `/sc:test` | Test işlemleri |
-| `/sc:analyze` | Kod analizi |
-| `/sc:troubleshoot` | Bug araştırma |
-| `/sc:git` | Git işlemleri |
-| `/sc:pm` | Proje yönetimi |
+### SC Commands (/sc:*)
+`brainstorm`, `implement`, `test`, `analyze`, `troubleshoot`, `git`, `pm`
 
 ### SuperClaude Agents (/superclaude:*)
-| Agent | Ne Zaman |
-|-------|----------|
-| `/superclaude:backend-architect` | Backend mimari |
-| `/superclaude:frontend-architect` | Frontend mimari |
-| `/superclaude:security-engineer` | Güvenlik |
-| `/superclaude:performance-engineer` | Performans |
-| `/superclaude:system-architect` | Sistem mimarisi |
-| `/superclaude:refactoring-expert` | Refactoring |
-| `/superclaude:root-cause-analyst` | Hata analizi |
+`backend-architect`, `frontend-architect`, `security-engineer`, `performance-engineer`, `system-architect`, `refactoring-expert`, `root-cause-analyst`
 
-### Superpowers (Workflow Skills)
-| Skill | Ne Zaman |
-|-------|----------|
-| `superpowers:brainstorming` | Yeni feature/component oluşturmadan ÖNCE |
-| `superpowers:writing-plans` | Multi-step task planlamadan ÖNCE |
-| `superpowers:executing-plans` | Yazılı plan execute ederken |
-| `superpowers:test-driven-development` | Feature/bugfix implement ederken |
-| `superpowers:systematic-debugging` | Bug/test failure karşılaşınca |
-| `superpowers:verification-before-completion` | "Bitti" demeden ÖNCE |
-| `superpowers:requesting-code-review` | Major feature/PR öncesi |
-| `superpowers:receiving-code-review` | Code review feedback alınca |
-| `superpowers:using-git-worktrees` | İzole feature çalışması |
-| `superpowers:dispatching-parallel-agents` | 2+ bağımsız task varsa |
-| `superpowers:finishing-a-development-branch` | Branch tamamlandığında |
+### Superpowers (Disiplin Katmanı)
+Karmaşık görevlerde kullanılabilir:
+- `brainstorming` - Feature tasarımı
+- `writing-plans` - Multi-step planlama
+- `systematic-debugging` - Karmaşık bug
+- `verification-before-completion` - PR öncesi
 
-**ÖNEMLİ:** Bu skill'ler %1 bile uygulanabilir olsa INVOKE ET!
-
-### Diğer Pluginler
-| Plugin | Ne Zaman |
-|--------|----------|
-| `jvm-languages` | Java/Kotlin/Scala |
-| `backend-development` | Backend API |
-| `security-scanning` | Güvenlik tarama |
-| `code-refactoring` | Refactoring |
-| `planning-with-files` | Kompleks görevler |
+### Diğer
+`jvm-languages`, `backend-development`, `security-scanning`, `code-refactoring`, `planning-with-files`
 
 ---
 
-## 🛠 CLI Araçları
+## Kırmızı Çizgiler
 
-### repomix (yamadashy/repomix)
-**Repo:** https://github.com/yamadashy/repomix
-**Durum:** ✅ Kurulu
+1. **3-Strike Rule:** 3 denemede çözemediysen → Kullanıcıya sor
+2. **Güvenlik dosyaları:** ASLA commit etme
+3. **Major kararlar:** Birden fazla yaklaşım varsa → Kullanıcıya sor
+4. **Test/Build:** Kullanıcı izni olmadan çalıştırma
 
-**Ne yapar:**
-- Codebase'i AI-friendly formata pack eder
-- Token sayımı yapar
-- Security check (Secretlint)
-- Tree-sitter compression (~70% token azaltma)
+---
 
-**Komutlar:**
+## CLI Araçları
+
+### repomix
 ```bash
-# Temel kullanım
-repomix                           # Mevcut dizini pack et
-repomix path/to/dir               # Belirli dizini pack et
-repomix --remote user/repo        # GitHub repo pack et
-repomix --compress                # Sıkıştırılmış output
-repomix --style markdown          # Markdown format
-repomix --include "src/**/*.ts"   # Sadece TypeScript
-repomix --ignore "**/*.test.ts"   # Test dosyalarını hariç tut
+repomix                  # Mevcut dizini pack et
+repomix --compress       # Sıkıştırılmış output
+repomix --remote user/repo
 ```
 
-**Output formatları:** XML (default), Markdown, JSON, Plain Text
-
-### repomix Tetikleyicileri
-```
-OTOMATİK ÇALIŞTIR:
-├─ Proje onboarding (baseline)
-├─ Major migration tamamlandı
-├─ 10+ dosya değişikliği olan commit
-├─ Yeni modül/paket eklendi
-└─ Mimari değişiklik (yeni service, API, etc.)
-
-ÇALIŞTIRMA:
-├─ Küçük bug fix
-├─ Dokümantasyon değişikliği
-├─ Config değişikliği
-└─ Test ekleme/düzeltme
-```
-
-**Komut:** `repomix --output repomix-output.txt`
+**Tetikleyiciler:** Onboarding, major migration, 10+ dosya değişikliği
 
 ---
 
-## 📋 Görev Akışları (Superpowers Entegre)
+## Hata Durumunda
 
-### Yeni Özellik
-```
-1. superpowers:brainstorming → Düşünme disiplini
-2. /sc:brainstorm → Gerçek brainstorm
-3. superpowers:writing-plans → Plan disiplini
-4. /sc:design → Plan oluştur
-5. superpowers:test-driven-development → TDD disiplini
-6. /sc:implement → Kod yaz
-7. superpowers:verification-before-completion → Kontrol
-8. /sc:test → Testleri çalıştır
-9. /sc:git → Commit/push
-```
+| Hata | Aksiyon |
+|------|---------|
+| serena read failed | "Context bulunamadı, sıfırdan mı?" |
+| MCP disconnect | `claude mcp list` ile kontrol |
+| 3x tool failure | Kullanıcıya açıkla |
 
-### Bug Düzeltme
-```
-1. superpowers:systematic-debugging → Debug disiplini
-2. /sc:troubleshoot → Root cause bul
-3. Fix uygula
-4. superpowers:verification-before-completion → Kontrol
-5. /sc:test → Testleri çalıştır
-6. /sc:git → Commit/push
-```
-
-### Major Migration
-```
-1. serena read_memory → Proje context
-2. superpowers:writing-plans → Plan disiplini
-3. planning-with-files → task_plan.md oluştur
-4. superpowers:executing-plans → Execute disiplini
-5. Fazlar halinde implement
-6. superpowers:verification-before-completion → Her faz sonunda
-7. serena write_memory → Context kaydet
-8. repomix → Baseline güncelle
-```
-
-### Refactoring
-```
-1. /sc:analyze → Mevcut durumu anla
-2. superpowers:writing-plans → Refactor planı
-3. code-refactoring plugin → Sistematik refactor
-4. superpowers:verification-before-completion → Kontrol
-5. /sc:test → Regression test
-6. /sc:git → Commit/push
-```
+> Detaylar: `~/.claude/docs/troubleshooting.md`
 
 ---
 
-## 🌍 Dil Tercihi
+## Bakım
+
+### CLAUDE.md Değişikliği
+```bash
+cd ~/.claude && git add -A && git commit -m "Update: <açıklama>" && git push
+```
+
+> Detaylar: `~/.claude/docs/maintenance.md`
+
+---
+
+## Referans Dosyaları
+
+Detaylı bilgi için:
+- `~/.claude/docs/mcp-reference.md` - MCP araçları
+- `~/.claude/docs/workflows.md` - Görev akışları
+- `~/.claude/docs/maintenance.md` - Bakım
+- `~/.claude/docs/troubleshooting.md` - Hata kurtarma
+
+---
+
+## Dil Tercihi
 - Türkçe iletişim tercih edilir
 - Kod ve teknik terimler İngilizce kalabilir
-
----
-
-## 🔄 State Machine (Durum Takibi)
-
-```
-┌─────────┐
-│  IDLE   │ ← Session başı
-└────┬────┘
-     │ kullanıcı görev verdi
-     ▼
-┌─────────────┐
-│  ANALYZING  │ → Görevi anla, tool seç
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  EXECUTING  │ → Tool'ları çalıştır
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  VERIFYING  │ → Sonucu doğrula
-└──────┬──────┘
-       │ başarılı
-       ▼
-┌─────────────┐
-│  CLEANUP    │ → Memory kaydet, todo temizle
-└──────┬──────┘
-       │
-       ▼
-┌─────────┐
-│  IDLE   │
-└─────────┘
-```
-
-**State'i nasıl takip et:**
-- TodoWrite'ta aktif görev = mevcut state
-- Görev yoksa = IDLE
-- Hata varsa = BLOCKED → kullanıcıya sor
-
----
-
-## 🚨 Hata Kurtarma
-
-| Hata | Kurtarma |
-|------|----------|
-| serena memory read FAILED | Kullanıcıya sor: "Önceki context bulunamadı, sıfırdan mı başlayalım?" |
-| MCP disconnect | `claude mcp list` → bağlı değilse kullanıcıya bildir |
-| planning-with-files corrupt | Backup'tan oku veya yeniden oluştur |
-| Tool 3x failed | Durumu kullanıcıya açıkla, farklı yaklaşım öner |
-| Belirsiz görev | AskUserQuestion ile netleştir |
-
-**3-Strike Rule:**
-```
-1. deneme: Hata → düzelt, tekrar dene
-2. deneme: Aynı hata → farklı yaklaşım dene
-3. deneme: Hala hata → KULLANICIYA SOR, devam etme
-```
-
----
-
-## 🔧 Bakım
-
-### CLAUDE.md Değişikliği Yapıldığında
-**Bu dosya git ile takip ediliyor! Değişiklik sonrası:**
-```bash
-cd ~/.claude && git add -A && git commit -m "Update: <değişiklik açıklaması>" && git push
-```
-**Repo:** https://github.com/bahmetpalanci/claude-code
-
-### Yeni Araç Kurulduğunda
-1. Bu dosyayı güncelle
-2. MCP durumunu kontrol et: `claude mcp list`
-3. Test et ve çalıştığını doğrula
-4. **Git'e commit et ve push yap!**
-
-### Periyodik Kontroller
-
-**Her session başında (otomatik):**
-```
-claude mcp list → Tüm MCP'ler bağlı mı?
-```
-
-**Haftalık (OTOMATİK - Session başında kontrol edilir):**
-
-**Akış:**
-```
-1. serena list_memories → "last-maintenance-*" ara
-2. Tarih kontrolü:
-   - Yok veya 7 günden eski → Bakım çalıştır
-   - 7 gün içinde → Atla
-3. Bakım bittikten sonra:
-   serena write_memory("last-maintenance-YYYY-MM-DD", "Bakım tamamlandı")
-```
-
-**Kullanıcıya bildir:**
-```
-🔧 Haftalık bakım çalıştırılıyor (son: 7+ gün önce)...
-   ✅ MCP'ler sağlıklı
-   ⚠️ repomix güncellemesi mevcut (1.2.3 → 1.3.0)
-   Güncellemek ister misin? [Evet / Hayır]
-```
-
-| Kontrol | Komut | Aksiyon |
-|---------|-------|---------|
-| MCP sağlık | `claude mcp list` | Bağlı değilse restart/fix |
-| Serena memories | `serena list_memories` | Eski/gereksiz varsa temizle |
-| claude-mem DB | `sqlite3 ~/.claude-mem/claude-mem.db "SELECT COUNT(*) FROM observations"` | 0 ise bug devam ediyor |
-
-**Güncelleme Kontrolleri (haftalık):**
-
-| Tool | Versiyon Kontrolü | Güncelleme |
-|------|-------------------|------------|
-| claude-flow | `npx claude-flow@latest --version` | Otomatik (npx @latest) |
-| chrome-devtools | `npx chrome-devtools-mcp@latest --version` | Otomatik (npx @latest) |
-| serena | `uvx --from git+https://github.com/oraios/serena serena --version` | `pip install --upgrade` |
-| repomix | `repomix --version` vs `npm view repomix version` | `npm update -g repomix` |
-| npm global | `npm outdated -g` | `npm update -g` |
-| Homebrew | `brew outdated` | `brew upgrade` |
-
-**Otomatik güncellenen (npx @latest):**
-- claude-flow ✅
-- chrome-devtools-mcp ✅
-- @bytebase/dbhub ✅
-
-**Manuel güncelleme gereken:**
-- serena (pip/uvx)
-- repomix (npm -g)
-- claude-mem plugin (claude plugins)
-
-**⚠️ KURAL: Güncelleme yapmadan ÖNCE kullanıcıya sor!**
-```
-Güncelleme bulundu:
-- repomix: 1.2.3 → 1.3.0 (minor)
-- serena: 2.0.0 → 3.0.0 (MAJOR - breaking changes olabilir!)
-
-Güncellemek ister misin? [Evet / Hayır / Sadece minor]
-```
-
-**Güncelleme önceliği:**
-1. 🔴 Security fix → Hemen öner
-2. 🟡 Major version → Uyar, breaking changes olabilir
-3. 🟢 Minor/Patch → Bildir, kullanıcı karar versin
-
-**Aylık:**
-
-| Kontrol | Aksiyon |
-|---------|---------|
-| CLAUDE.md review | Güncel mi? Eksik tool var mı? |
-| Kullanılmayan MCP | `claude mcp remove` ile kaldır |
-| Disk kullanımı | `du -sh ~/.claude*` - gereksiz cache temizle |
-
-### Güncelleme Komutları
-
-```bash
-# MCP server güncelle
-claude mcp remove <name> && claude mcp add <name> -- <new-command>
-
-# Plugin güncelle (varsa)
-claude plugins update <plugin-name>
-
-# npm global paketler
-npm update -g
-```
-
----
-
-## ✅ KULLANICI MÜDAHALESİ GEREKTİREN İŞLEMLER (ÖZET)
-
-### Otomatik Çalışan (Kullanıcı bir şey yapmaz):
-- ✅ Session başlangıç checklist
-- ✅ Proje hafızası okuma (serena memory)
-- ✅ MCP sağlık kontrolü
-- ✅ Haftalık bakım (7 gün sonra otomatik)
-- ✅ Milestone sonrası memory kaydetme (commit, PR, test pass)
-- ✅ Tool seçimi ve çalıştırma
-- ✅ planning-with-files (3+ adımlı görevlerde)
-- ✅ TodoWrite progress tracking
-
-### Kullanıcı Onayı Gereken (Sadece bunlar sorulur):
-- ⚠️ **Güncelleme onayı** - Yeni versiyon bulunduğunda
-- ⚠️ **Major karar** - Birden fazla geçerli yaklaşım varsa
-- ⚠️ **Hata sonrası** - 3 deneme başarısız olduysa
-
-### Kullanıcının Söylemesi Gereken:
-- 🎯 **Görev** - Ne yapılacağını belirt (örn: "bug düzelt", "feature ekle")
-- 🎯 **Devam/Dur** - Uzun işlemlerde yön ver
-
-**Sonuç:** Kullanıcı sadece görev verir ve kritik kararlarda onay verir. Geri kalan her şey otomatik.
