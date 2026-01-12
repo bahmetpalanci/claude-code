@@ -198,6 +198,50 @@ Bu işlemler proje başına BİR KEZ yapılır, her session'da tekrarlanmaz:
 
 ## 📦 Pluginler
 
+### 🎯 ARAÇ HİYERARŞİSİ (ÖNEMLİ!)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SUPERPOWERS (Discipline Layer)                             │
+│  "NASIL yapılacak" - Workflow kuralları, disiplin           │
+│  → Önce invoke et, sonra diğerlerini çalıştır               │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  SC COMMANDS + SUPERCLAUDE AGENTS (Execution Layer)         │
+│  "NE yapılacak" - Gerçek iş, kod yazma, analiz              │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  TRACKING LAYER                                             │
+│  TodoWrite: Session-only, anlık progress                    │
+│  planning-with-files: Persistent, 3+ adımlı kompleks        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Çakışan Araçlar - Hangisini Kullan:**
+
+| Durum | Superpowers | SC Command | Birlikte? |
+|-------|-------------|------------|-----------|
+| Yeni feature | `brainstorming` | `/sc:brainstorm` | Önce superpowers → sonra /sc |
+| Bug fix | `systematic-debugging` | `/sc:troubleshoot` | Önce superpowers → sonra /sc |
+| Plan yazma | `writing-plans` | `/sc:design` | Önce superpowers → sonra /sc |
+| Kod yazma | `test-driven-development` | `/sc:implement` | Önce superpowers → sonra /sc |
+| Bitirme | `verification-before-completion` | `/sc:git` | Önce superpowers → sonra /sc |
+
+**Tracking Seçimi:**
+
+| Görev Tipi | TodoWrite | planning-with-files |
+|------------|-----------|---------------------|
+| Basit (1-2 adım) | ✅ | ❌ |
+| Orta (3-5 adım) | ✅ | Opsiyonel |
+| Kompleks (5+ adım) | ✅ | ✅ Zorunlu |
+| Multi-session | ✅ | ✅ Zorunlu |
+
+**Kural:** TodoWrite HER ZAMAN kullan. planning-with-files sadece kompleks görevlerde.
+
+---
+
 ### SuperClaude (/sc:*)
 | Komut | Ne Zaman |
 |-------|----------|
