@@ -220,6 +220,23 @@ Bu işlemler proje başına BİR KEZ yapılır, her session'da tekrarlanmaz:
 | `/superclaude:refactoring-expert` | Refactoring |
 | `/superclaude:root-cause-analyst` | Hata analizi |
 
+### Superpowers (Workflow Skills)
+| Skill | Ne Zaman |
+|-------|----------|
+| `superpowers:brainstorming` | Yeni feature/component oluşturmadan ÖNCE |
+| `superpowers:writing-plans` | Multi-step task planlamadan ÖNCE |
+| `superpowers:executing-plans` | Yazılı plan execute ederken |
+| `superpowers:test-driven-development` | Feature/bugfix implement ederken |
+| `superpowers:systematic-debugging` | Bug/test failure karşılaşınca |
+| `superpowers:verification-before-completion` | "Bitti" demeden ÖNCE |
+| `superpowers:requesting-code-review` | Major feature/PR öncesi |
+| `superpowers:receiving-code-review` | Code review feedback alınca |
+| `superpowers:using-git-worktrees` | İzole feature çalışması |
+| `superpowers:dispatching-parallel-agents` | 2+ bağımsız task varsa |
+| `superpowers:finishing-a-development-branch` | Branch tamamlandığında |
+
+**ÖNEMLİ:** Bu skill'ler %1 bile uygulanabilir olsa INVOKE ET!
+
 ### Diğer Pluginler
 | Plugin | Ne Zaman |
 |--------|----------|
