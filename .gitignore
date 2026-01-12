@@ -1,0 +1,33 @@
+# One-off files
+ksef-*.md
+
+# Cache and temporary files
+cache/
+ccnotify/
+debug/
+downloads/
+file-history/
+history.jsonl
+ide/
+paste-cache/
+plans/
+session-env/
+shell-snapshots/
+stats-cache.json
+statsig/
+telemetry/
+todos/
+local/
+
+# Plugins have their own repos
+plugins/
+
+# Project-specific data (sensitive)
+projects/
+
+# Track these:
+# - CLAUDE.md (global instructions)
+# - mcp.json (MCP server config)
+# - scripts/ (custom scripts)
+# - settings.json (user settings)
+# - commands/ (custom commands)

@@ -1,0 +1,99 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean compile:*)",
+      "Bash(mvn compiler:compile:*)",
+      "Bash(./mvnw clean install:*)",
+      "Bash(chmod:*)",
+      "Bash(/Users/bap/IdeaProjects/peppol-copy/mvnw:*)",
+      "Bash(./mvnw clean compile:*)",
+      "Bash(find:*)",
+      "Bash(timeout 60 ./mvnw spring-boot:run:*)",
+      "Bash(pkill:*)",
+      "Bash(mkdir:*)",
+      "Bash(openssl x509:*)",
+      "Bash(openssl pkcs8:*)",
+      "Bash(openssl pkey:*)",
+      "Bash(lsof:*)",
+      "Bash(/dev/null)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(for i in {1..50})",
+      "Bash(do)",
+      "Bash(if grep -q \"Started MelareconPeppolSolutionApplication\" /tmp/spring-boot.log)",
+      "Bash(then)",
+      "Bash(echo:*)",
+      "Bash(exit 0)",
+      "Bash(fi)",
+      "Bash(printf:*)",
+      "Bash(done)",
+      "Bash(jar -xf:*)",
+      "Bash(javap:*)",
+      "Bash(jar -tf:*)",
+      "Bash(unzip:*)",
+      "Bash(cat:*)",
+      "Bash(./mvnw spring-boot:run:*)",
+      "Bash(pip3 list:*)",
+      "Bash(brew install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(grep:*)",
+      "Bash(javac:*)",
+      "Bash(./gradlew clean build:*)",
+      "Bash(./gradlew:*)",
+      "Bash(java -version:*)",
+      "Bash(/usr/libexec/java_home:*)",
+      "Bash(cp:*)",
+      "Bash(mvn install:install-file:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "acceptEdits"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/ccnotify/ccnotify.py UserPromptSubmit"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/ccnotify/ccnotify.py Stop"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/ccnotify/ccnotify.py Notification"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true,
+    "claude-mem@thedotmack": true,
+    "planning-with-files@planning-with-files": true,
+    "superpowers@superpowers-marketplace": true,
+    "claude-code-workflows@wshobson-agents": true,
+    "jvm-languages@wshobson-agents": true,
+    "codebase-cleanup@wshobson-agents": true,
+    "backend-api-security@wshobson-agents": true,
+    "security-compliance@wshobson-agents": true,
+    "security-scanning@wshobson-agents": true,
+    "backend-development@wshobson-agents": true,
+    "code-refactoring@wshobson-agents": true
+  },
+  "alwaysThinkingEnabled": true
+}
