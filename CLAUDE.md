@@ -329,10 +329,18 @@ serena write_memory → claude-mem save → repomix
 
 ## 🔧 Bakım
 
+### CLAUDE.md Değişikliği Yapıldığında
+**Bu dosya git ile takip ediliyor! Değişiklik sonrası:**
+```bash
+cd ~/.claude && git add -A && git commit -m "Update: <değişiklik açıklaması>" && git push
+```
+**Repo:** https://github.com/bahmetpalanci/claude-code
+
 ### Yeni Araç Kurulduğunda
 1. Bu dosyayı güncelle
 2. MCP durumunu kontrol et: `claude mcp list`
 3. Test et ve çalıştığını doğrula
+4. **Git'e commit et ve push yap!**
 
 ### Periyodik Kontroller
 
