@@ -63,6 +63,7 @@ claude-mem bug'lı olduğu için global öğrenmeleri de `serena memories`'e kay
 1. serena read_memory → Proje hafızasını oku (varsa)
 2. Proje yapısını tanı (Java/Python/Node/etc.)
 3. Kompleks görevse → planning-with-files başlat
+4. İlk kez onboarding yapılıyorsa → repomix çalıştır (baseline)
 ```
 
 ### Çalışma sırasında:
@@ -187,6 +188,7 @@ Bu işlemler proje başına BİR KEZ yapılır, her session'da tekrarlanmaz:
 |-------|-----------------|------------|
 | dbhub DSN config | `claude mcp list \| grep dbhub` | MCP config |
 | Proje onboarding | `serena check_onboarding_performed` | serena |
+| repomix baseline | `repomix-output.txt` var mı | Filesystem |
 | Initial git setup | `.git` klasörü var mı | Filesystem |
 | npm/gradle dependency | `node_modules/`, `build/` var mı | Filesystem |
 
@@ -233,7 +235,7 @@ Bu işlemler proje başına BİR KEZ yapılır, her session'da tekrarlanmaz:
 
 | Araç | Durum | Ne Zaman |
 |------|-------|----------|
-| `repomix` | ✅ Kurulu | Major milestone sonrası |
+| `repomix` | ✅ Kurulu | Proje onboarding + Major milestone sonrası |
 
 ---
 
