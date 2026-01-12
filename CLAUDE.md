@@ -7,6 +7,33 @@
 - MCP aracı gerekiyorsa direkt çağır
 - Sadece ciddi belirsizlik varsa sor
 
+### 🧪 Test Politikası
+| İşlem | İzin | Açıklama |
+|-------|------|----------|
+| Test YAZMA | ❌ Sorma | Kullanıcı isterse yaz |
+| Test ÇALIŞTIRMA | ✅ Otomatik | Milestone kontrolü için çalıştır |
+| Build ÇALIŞTIRMA | ❌ Sorma | Kullanıcı isterse çalıştır |
+
+**Ne zaman test çalıştır (otomatik):**
+- Commit öncesi (`/sc:git` içinde)
+- PR oluşturmadan önce
+- Major değişiklik sonrası doğrulama
+
+### 🔐 Güvenlik Kuralları
+```
+ASLA COMMIT ETME:
+├─ .env, .env.local, .env.production
+├─ credentials.json, secrets.yaml
+├─ *_secret*, *_key*, *_token*
+├─ application-prod.yml (hassas config)
+└─ private key dosyaları (*.pem, *.key)
+
+UYARI VER:
+├─ Hardcoded password/API key görürsen
+├─ Güvenli olmayan HTTP endpoint
+└─ SQL injection riski
+```
+
 ---
 
 ## 🚀 SESSION BAŞLANGIÇ CHECKLIST (HER KONUŞMADA ÇALIŞTIR!)
@@ -60,10 +87,24 @@ claude-mem bug'lı olduğu için global öğrenmeleri de `serena memories`'e kay
 
 ### Kullanıcı "yeni proje/başla" dediğinde:
 ```
-1. serena read_memory → Proje hafızasını oku (varsa)
+1. serena check_onboarding_performed → İlk kez mi?
+   ├─ İlk kez → Onboarding akışını başlat (aşağıda)
+   └─ Değil → serena read_memory → Context yükle
 2. Proje yapısını tanı (Java/Python/Node/etc.)
 3. Kompleks görevse → planning-with-files başlat
-4. İlk kez onboarding yapılıyorsa → repomix çalıştır (baseline)
+```
+
+### 🆕 Yeni Proje Onboarding Akışı
+```
+1. serena onboarding → Proje yapısını öğren
+2. Kullanıcıya sor: "Projenin amacı nedir? Ana teknolojiler?"
+3. repomix çalıştır → Baseline oluştur
+4. serena write_memory → Onboarding bilgilerini kaydet:
+   - Proje amacı
+   - Teknoloji stack (Java/Spring, Node/Express, etc.)
+   - Önemli dizinler (src/main, tests/, etc.)
+   - Build/test komutları
+5. Bildir: "✅ Proje onboarding tamamlandı"
 ```
 
 ### Çalışma sırasında:
@@ -71,6 +112,18 @@ claude-mem bug'lı olduğu için global öğrenmeleri de `serena memories`'e kay
 - TodoWrite ile progress track et
 - Her 2 işlemden sonra bulguları dosyaya yaz (planning-with-files)
 - Önemli kararları not al
+```
+
+### 🔁 Multi-Session Devam (Önceki görev yarım kaldıysa)
+```
+1. Session başında task_plan.md kontrol et
+2. Varsa ve tamamlanmamışsa:
+   - progress.md oku → Son durum neydi?
+   - Kullanıcıya bildir: "Yarım kalan görev var: [özet]. Devam edelim mi?"
+   - Evet → Kaldığı yerden devam
+   - Hayır → task_plan.md arşivle (task_plan_YYYY-MM-DD.md)
+3. findings.md'yi oku → Önceki bulgular
+4. Kaldığı fazdan devam et
 ```
 
 ### Kullanıcı "bitti/tamam/son" dediğinde:
@@ -91,7 +144,19 @@ claude-mem bug'lı olduğu için global öğrenmeleri de `serena memories`'e kay
 **Hatırlatma tetikleyicileri:**
 - 10+ tool kullanımı sonrası → "Session'ı kaydetmek ister misin?"
 - Büyük görev tamamlandı → "Bitti mi, devam mı?"
-- Context dolmaya yakın → "Context doluyor, önemli şeyleri kaydedelim mi?"
+- Context dolmaya yakın → Aşağıdaki akışı başlat
+
+### 📦 Context Overflow Handling
+```
+Context %80+ dolduğunda:
+1. Mevcut durumu özetle
+2. serena write_memory → Kritik context'i kaydet
+3. planning-with-files güncelle → progress.md yaz
+4. Kullanıcıya bildir:
+   "Context dolmak üzere. Durumu kaydettim.
+    Yeni session'da devam edebiliriz."
+5. Devam kararı kullanıcıda
+```
 
 **NOT:** Milestone'larda SORMADAN kaydet, sadece bildir:
 ```
@@ -296,31 +361,73 @@ Bu işlemler proje başına BİR KEZ yapılır, her session'da tekrarlanmaz:
 
 | Araç | Durum | Ne Zaman |
 |------|-------|----------|
-| `repomix` | ✅ Kurulu | Proje onboarding + Major milestone sonrası |
+| `repomix` | ✅ Kurulu | Aşağıdaki tetikleyicilerde |
+
+### repomix Tetikleyicileri
+```
+OTOMATİK ÇALIŞTIR:
+├─ Proje onboarding (baseline)
+├─ Major migration tamamlandı
+├─ 10+ dosya değişikliği olan commit
+├─ Yeni modül/paket eklendi
+└─ Mimari değişiklik (yeni service, API, etc.)
+
+ÇALIŞTIRMA:
+├─ Küçük bug fix
+├─ Dokümantasyon değişikliği
+├─ Config değişikliği
+└─ Test ekleme/düzeltme
+```
+
+**Komut:** `repomix --output repomix-output.txt`
 
 ---
 
-## 📋 Görev Akışları
+## 📋 Görev Akışları (Superpowers Entegre)
 
 ### Yeni Özellik
 ```
-/sc:brainstorm → /sc:implement → /sc:test → /sc:git
+1. superpowers:brainstorming → Düşünme disiplini
+2. /sc:brainstorm → Gerçek brainstorm
+3. superpowers:writing-plans → Plan disiplini
+4. /sc:design → Plan oluştur
+5. superpowers:test-driven-development → TDD disiplini
+6. /sc:implement → Kod yaz
+7. superpowers:verification-before-completion → Kontrol
+8. /sc:test → Testleri çalıştır
+9. /sc:git → Commit/push
 ```
 
 ### Bug Düzeltme
 ```
-/sc:troubleshoot → fix → /sc:test → /sc:git
+1. superpowers:systematic-debugging → Debug disiplini
+2. /sc:troubleshoot → Root cause bul
+3. Fix uygula
+4. superpowers:verification-before-completion → Kontrol
+5. /sc:test → Testleri çalıştır
+6. /sc:git → Commit/push
 ```
 
 ### Major Migration
 ```
-serena read_memory → planning-with-files → implement → test →
-serena write_memory → claude-mem save → repomix
+1. serena read_memory → Proje context
+2. superpowers:writing-plans → Plan disiplini
+3. planning-with-files → task_plan.md oluştur
+4. superpowers:executing-plans → Execute disiplini
+5. Fazlar halinde implement
+6. superpowers:verification-before-completion → Her faz sonunda
+7. serena write_memory → Context kaydet
+8. repomix → Baseline güncelle
 ```
 
 ### Refactoring
 ```
-/sc:analyze → serena analiz → code-refactoring → /sc:test
+1. /sc:analyze → Mevcut durumu anla
+2. superpowers:writing-plans → Refactor planı
+3. code-refactoring plugin → Sistematik refactor
+4. superpowers:verification-before-completion → Kontrol
+5. /sc:test → Regression test
+6. /sc:git → Commit/push
 ```
 
 ---
