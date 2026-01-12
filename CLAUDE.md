@@ -212,14 +212,138 @@ Context %80+ dolduğunda:
 
 **Config:** `~/.claude/mcp.json` (proje bazlı config KULLANMA!)
 
-| MCP | Durum | Ne Zaman |
-|-----|-------|----------|
-| `serena` | ✅ Aktif | Kod analizi, refactoring, proje hafızası |
-| `claude-mem` | ❌ Bug | Worker race condition - observation oluşturmuyor. `serena memories` kullan |
-| `chrome-devtools` | ✅ Aktif | Browser testi, screenshot, DOM |
-| `git-mcp` | ✅ Aktif | Git dokümantasyonu |
-| `dbhub` | 🔄 Otomatik | Proje config'inden DSN al ve bağlan (aşağıya bak) |
-| `claude-flow` | ✅ Aktif | Multi-agent orkestrasyon, 27 tool |
+### serena (oraios/serena)
+**Repo:** https://github.com/oraios/serena
+**Durum:** ✅ Aktif
+
+**Ne yapar:**
+- Semantic kod analizi (LSP tabanlı)
+- Symbol-level okuma/yazma/refactoring
+- Proje bazlı memory sistemi
+- Cross-reference bulma
+- Otomatik onboarding
+
+**Araçlar:**
+| Tool | Açıklama |
+|------|----------|
+| `find_symbol` | İsimle symbol bul |
+| `find_referencing_symbols` | Reference'ları bul |
+| `get_symbols_overview` | Dosya symbol özeti |
+| `replace_symbol_body` | Symbol içeriği değiştir |
+| `insert_before/after_symbol` | Kod ekle |
+| `rename_symbol` | Codebase-wide rename |
+| `search_for_pattern` | Regex ile ara |
+| `read/write/list_memory` | Proje hafızası |
+
+---
+
+### chrome-devtools-mcp (ChromeDevTools/chrome-devtools-mcp)
+**Repo:** https://github.com/ChromeDevTools/chrome-devtools-mcp
+**Durum:** ✅ Aktif
+
+**Ne yapar:**
+- Browser otomasyon ve debug
+- Screenshot ve DOM snapshot
+- Network analizi
+- Performance trace
+- Console log okuma
+
+**Araçlar:**
+| Tool | Açıklama |
+|------|----------|
+| `take_snapshot` | A11y tree text snapshot |
+| `take_screenshot` | Sayfa/element screenshot |
+| `click`, `fill`, `hover` | Input otomasyon |
+| `navigate_page` | URL navigasyon |
+| `list_network_requests` | Network istekleri |
+| `list_console_messages` | Console logları |
+| `evaluate_script` | JS çalıştır |
+| `performance_start/stop_trace` | Performance analiz |
+| `emulate` | Device/network emülasyon |
+
+---
+
+### git-mcp (gitmcp.io)
+**URL:** https://gitmcp.io/docs
+**Durum:** ✅ Aktif
+
+**Ne yapar:**
+- GitHub repo dokümantasyonu fetch
+- Kod arama
+- Library → owner/repo eşleştirme
+
+**Araçlar:**
+| Tool | Açıklama |
+|------|----------|
+| `fetch_generic_documentation` | Repo docs çek |
+| `search_generic_documentation` | Docs'ta ara |
+| `search_generic_code` | Kod ara |
+| `fetch_generic_url_content` | URL içeriği çek |
+| `match_common_libs_owner_repo_mapping` | Library → repo eşle |
+
+---
+
+### claude-flow (ruvnet/claude-flow)
+**Repo:** https://github.com/ruvnet/claude-flow
+**Durum:** ✅ Aktif
+
+**Ne yapar:**
+- Multi-agent orkestrasyon
+- Swarm intelligence
+- RAG entegrasyonu
+- Parallel agent spawning
+
+**Öne çıkan özellikler:**
+- 100+ MCP tool
+- Dynamic Agent Architecture (DAA)
+- 50-100x in-process MCP performans
+- Persistent memory
+
+---
+
+### dbhub (bytebase/dbhub)
+**Repo:** https://github.com/bytebase/dbhub
+**Durum:** 🔄 Otomatik config
+
+**Ne yapar:**
+- Database bağlantısı (PostgreSQL, MySQL, SQLite, SQL Server, MariaDB)
+- SQL query çalıştırma
+- Schema exploration
+- Multi-database desteği
+
+**Araçlar:**
+| Tool | Açıklama |
+|------|----------|
+| `execute_sql` | SQL çalıştır |
+| `search_objects` | Schema/table/column ara |
+
+---
+
+### claude-mem (thedotmack/claude-mem)
+**Repo:** https://github.com/thedotmack/claude-mem
+**Versiyon:** 9.0.4 (en güncel)
+**Durum:** ⚠️ Sorunlu (aşağıya bak)
+
+**Ne yapar:**
+- Session observation capture
+- AI-powered context compression
+- Semantic search across sessions
+- ChromaDB vector storage
+
+**Bilinen sorunlar (v9.0.4):**
+- Worker startup race condition (bazı sistemlerde)
+- Observation'lar bazen kaydedilmiyor
+
+**Workaround:**
+```bash
+# Worker'ı manuel başlat
+bun ~/.claude/plugins/cache/thedotmack/claude-mem/9.0.4/scripts/worker-service.cjs start
+
+# DB kontrolü
+sqlite3 ~/.claude-mem/claude-mem.db "SELECT COUNT(*) FROM observations"
+```
+
+**Alternatif:** `serena memories` kullan (daha stabil)
 
 ### dbhub Otomatik Konfigürasyon
 
@@ -359,9 +483,29 @@ Bu işlemler proje başına BİR KEZ yapılır, her session'da tekrarlanmaz:
 
 ## 🛠 CLI Araçları
 
-| Araç | Durum | Ne Zaman |
-|------|-------|----------|
-| `repomix` | ✅ Kurulu | Aşağıdaki tetikleyicilerde |
+### repomix (yamadashy/repomix)
+**Repo:** https://github.com/yamadashy/repomix
+**Durum:** ✅ Kurulu
+
+**Ne yapar:**
+- Codebase'i AI-friendly formata pack eder
+- Token sayımı yapar
+- Security check (Secretlint)
+- Tree-sitter compression (~70% token azaltma)
+
+**Komutlar:**
+```bash
+# Temel kullanım
+repomix                           # Mevcut dizini pack et
+repomix path/to/dir               # Belirli dizini pack et
+repomix --remote user/repo        # GitHub repo pack et
+repomix --compress                # Sıkıştırılmış output
+repomix --style markdown          # Markdown format
+repomix --include "src/**/*.ts"   # Sadece TypeScript
+repomix --ignore "**/*.test.ts"   # Test dosyalarını hariç tut
+```
+
+**Output formatları:** XML (default), Markdown, JSON, Plain Text
 
 ### repomix Tetikleyicileri
 ```
