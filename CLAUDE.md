@@ -11,13 +11,10 @@
 | İşlem | İzin | Açıklama |
 |-------|------|----------|
 | Test YAZMA | ❌ Sorma | Kullanıcı isterse yaz |
-| Test ÇALIŞTIRMA | ✅ Otomatik | Milestone kontrolü için çalıştır |
+| Test ÇALIŞTIRMA | ❌ Sorma | Kullanıcı isterse çalıştır |
 | Build ÇALIŞTIRMA | ❌ Sorma | Kullanıcı isterse çalıştır |
 
-**Ne zaman test çalıştır (otomatik):**
-- Commit öncesi (`/sc:git` içinde)
-- PR oluşturmadan önce
-- Major değişiklik sonrası doğrulama
+**KURAL:** Test, build, derleme → HEPSİ için kullanıcıdan izin al!
 
 ### 🔐 Güvenlik Kuralları
 ```
