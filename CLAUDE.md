@@ -71,6 +71,36 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 
 ---
 
+## Semantic MCP Seçim Kılavuzu
+
+> **Kural:** Prompt'un ne söylediğine değil, **ne yapmak istediğine** bak.
+
+| Intent (Kullanıcı Ne İstiyor) | Örnek Promptlar | MCP | İlk Tool |
+|-------------------------------|-----------------|-----|----------|
+| **UI/Sayfa/Tarayıcı debug** | "Sayfada hata var", "Buton çalışmıyor", "Network hatası", "Console'da ne var?" | chrome-devtools | `take_snapshot` |
+| **Veritabanı sorgu/kontrol** | "Bu kayıt var mı?", "Tabloda kaç satır?", "Şema nasıl?", "FK kontrolü" | dbhub-* | `search_objects` |
+| **Harici library/docs** | "Bu library nasıl kullanılır?", "Repo docs nerede?", "API referansı" | git-mcp | docs fetch |
+| **Kod analizi/refactoring** | "Bu fonksiyon ne yapıyor?", "Referansları bul", "Rename yap" | serena | `find_symbol` |
+| **Geçmiş context** | "Daha önce ne yaptık?", "Son session'da ne vardı?" | serena + claude-mem | `list_memories` |
+| **Multi-agent orkestrasyon** | "Paralel çalıştır", "Agent spawn" | claude-flow | `agent spawn` |
+
+### MCP Karar Ağacı
+
+```
+Prompt geldi
+├─ UI/Sayfa/Tarayıcı → chrome-devtools
+│   └─ take_snapshot → list_console_messages → list_network_requests
+├─ Veritabanı/Veri → dbhub (dev/stage/test)
+│   └─ search_objects → execute_sql
+├─ Harici library → git-mcp
+│   └─ docs fetch
+├─ Kod okuma/yazma → serena
+│   └─ find_symbol → replace_symbol_body
+└─ Geçmiş context → serena memories + claude-mem
+```
+
+---
+
 ## MCP Kullanım Rehberi
 
 ### serena (Ana Araç)
@@ -87,6 +117,11 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 | Şema keşfi | `search_objects` (table, column) |
 | Sorgu | `execute_sql` |
 
+**Ortam seçimi:**
+- `dbhub-dev` → Geliştirme
+- `dbhub-stage` → Staging/Test
+- `dbhub-test` → Birim test DB
+
 ### chrome-devtools (Frontend Debug)
 | İşlem | Tool |
 |-------|------|
@@ -94,7 +129,17 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 | Interaction | `click`, `fill`, `navigate_page` |
 | Debug | `list_console_messages`, `list_network_requests` |
 
-### claude-flow (Opsiyonel - Multi-agent)
+**Ne zaman:** UI hataları, network sorunları, DOM analizi
+
+### git-mcp (Repo Dokümantasyon)
+| İşlem | Tool |
+|-------|------|
+| Library docs | docs fetch |
+| README getir | get_readme |
+
+**Ne zaman:** Harici library kullanımı, dependency dokümantasyonu
+
+### claude-flow (Multi-agent - Opsiyonel)
 | İşlem | Tool |
 |-------|------|
 | Agent spawn | `agent spawn -t <type>` |
@@ -102,20 +147,15 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 | Memory search | `memory search -q "<query>"` |
 
 ### claude-mem (Global Memory - Otomatik)
-> **NOT:** claude-mem hooks aracılığıyla otomatik çalışır. Manuel kullanım gerekmez.
+> **NOT:** Hooks aracılığıyla otomatik çalışır.
 
 | İşlem | Tool |
 |-------|------|
-| Observation ara | `mcp__plugin_claude-mem_mcp-search__search` |
-| Context getir | `mcp__plugin_claude-mem_mcp-search__timeline` |
-| Detay al | `mcp__plugin_claude-mem_mcp-search__get_observations` |
+| Observation ara | `search` |
+| Context getir | `timeline` |
+| Detay al | `get_observations` |
 
-**Ne zaman kullanılır:**
-- Önceki oturumlarda ne yapıldığını hatırlamak için
-- Proje geçmişini sorgulamak için
-- serena memory'den farklı olarak **tüm projeler** için global context sağlar
-
-**Observation türleri:** `bugfix`, `feature`, `refactor`, `discovery`, `decision`, `change`
+**Ne zaman:** Önceki oturumlar, proje geçmişi, tüm projeler için global context
 
 ---
 

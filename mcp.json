@@ -11,9 +11,9 @@
       "description": "Chrome DevTools MCP - Browser debugging and automation"
     },
     "git-mcp": {
-      "type": "http",
-      "url": "https://gitmcp.io/docs",
-      "description": "Git MCP - Git documentation and operations"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://gitmcp.io/docs"],
+      "description": "Git MCP - GitHub documentation fetch via SSE bridge"
     },
     "serena": {
       "command": "/Users/bap/.local/bin/uvx",

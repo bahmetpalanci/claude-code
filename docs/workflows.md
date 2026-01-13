@@ -8,7 +8,9 @@
 
 ```
 1. Gereksinim analizi
-   └─ Belirsizlik varsa kullanıcıya sor
+   ├─ Belirsizlik varsa kullanıcıya sor
+   ├─ Library kullanılacaksa → git-mcp ile docs fetch
+   └─ DB değişikliği varsa → dbhub ile şema kontrol
 
 2. Planlama
    ├─ Basit → Direkt başla
@@ -18,7 +20,8 @@
    └─ /sc:implement veya direkt kod yaz
 
 4. Doğrulama
-   └─ Kullanıcı isterse test çalıştır
+   ├─ Kullanıcı isterse test çalıştır
+   └─ Frontend varsa → chrome-devtools ile UI test
 
 5. Tamamlama
    └─ serena write_memory (milestone ise)
@@ -30,17 +33,24 @@
 
 ```
 1. Hata analizi
-   └─ /sc:troubleshoot veya manuel araştır
+   ├─ Backend → /sc:troubleshoot + serena
+   └─ Frontend → /sc:troubleshoot + chrome-devtools
+       ├─ take_snapshot → DOM durumu
+       ├─ list_console_messages → JS hataları
+       └─ list_network_requests → API hataları
 
-2. Root cause bul
+2. DB ile ilgiliyse
+   └─ dbhub execute_sql → Veri kontrolü
+
+3. Root cause bul
    └─ Log, stack trace, kod oku
 
-3. Fix uygula
+4. Fix uygula
 
-4. Doğrulama
+5. Doğrulama
    └─ Kullanıcı isterse test çalıştır
 
-5. Tamamlama
+6. Tamamlama
 ```
 
 ---

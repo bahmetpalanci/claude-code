@@ -42,24 +42,47 @@
 
 ## git-mcp (gitmcp.io)
 **URL:** https://gitmcp.io/docs
-**Durum:** Aktif
+**Durum:** Aktif (SSE → stdio bridge ile)
+
+**Konfigürasyon:**
+```json
+{
+  "command": "npx",
+  "args": ["-y", "mcp-remote", "https://gitmcp.io/docs"]
+}
+```
 
 **Özellikler:**
 - GitHub repo dokümantasyonu fetch
-- Kod arama
-- Library → owner/repo eşleştirme
+- Library docs arama
+- Dependency dokümantasyonu
+
+**Ne zaman kullanılır:**
+- Harici library nasıl kullanılır?
+- API referansı lazım
+- Repo docs nerede?
 
 ---
 
 ## claude-flow (ruvnet/claude-flow)
 **Repo:** https://github.com/ruvnet/claude-flow
-**Durum:** Aktif
+**Durum:** Aktif (singleton script ile)
+
+**Konfigürasyon:**
+```json
+{
+  "command": "/Users/bap/.claude/scripts/claude-flow-mcp.sh",
+  "args": []
+}
+```
 
 **Özellikler:**
 - Multi-agent orkestrasyon
 - Swarm intelligence
 - RAG entegrasyonu
 - Parallel agent spawning
+
+**Not:** Script otomatik olarak mevcut instance'ı durdurur
 
 ---
 
