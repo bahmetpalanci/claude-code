@@ -175,6 +175,61 @@ Kod analizi gerekiyor
 
 **Kural:** Spesifik → serena, Geniş kapsamlı → repomix
 
+### Intent Öncelikli Yaklaşım - Somut Örnekler
+
+> **ÖNEMLİ:** Aynı kelimeler, farklı intent'lere göre farklı tool'ları tetikler.
+
+#### Aynı Kelime, Farklı Intent
+
+| Prompt | Kelime | Gerçek Intent | Doğru Tool |
+|--------|--------|---------------|------------|
+| "Sayfada hata var" | hata | UI/Browser debug | chrome-devtools |
+| "Bu metotta hata var" | hata | Kod analizi | serena find_symbol |
+| "Hata mesajlarını standartlaştır" | hata | Refactoring (çok dosya) | repomix → plan |
+| "Hata loglama nasıl çalışıyor?" | hata | Geçmiş context | serena memories |
+
+| Prompt | Kelime | Gerçek Intent | Doğru Tool |
+|--------|--------|---------------|------------|
+| "Projeyi analiz et" | analiz | Genel yapı | repomix --token-count-tree |
+| "Bu sınıfı analiz et" | analiz | Tek sembol | serena get_symbols_overview |
+| "Network trafiğini analiz et" | analiz | Browser debug | chrome-devtools |
+| "Tablo yapısını analiz et" | analiz | DB şema | dbhub search_objects |
+
+| Prompt | Kelime | Gerçek Intent | Doğru Tool |
+|--------|--------|---------------|------------|
+| "Nasıl çalışıyor?" (genel) | nasıl | Mimari anlama | repomix |
+| "Bu fonksiyon nasıl çalışıyor?" | nasıl | Tek sembol | serena find_symbol |
+| "Login nasıl çalışıyor?" (UI) | nasıl | Flow debug | chrome-devtools |
+| "Mapper nasıl çalışıyor?" | nasıl | Library docs | git-mcp |
+
+#### Intent Belirleme Soruları
+
+```
+1. KAPSAM: Tek dosya/sembol mü, yoksa proje geneli mi?
+   └─ Tek → serena | Geniş → repomix
+
+2. DOMAIN: Kod mu, UI mu, DB mi, harici library mi?
+   └─ Kod → serena/repomix | UI → chrome-devtools | DB → dbhub | Library → git-mcp
+
+3. AMAÇ: Okuma mı, yazma mı, debug mu?
+   └─ Debug → chrome-devtools/logs | Okuma → serena | Yazma → serena + plan
+
+4. CONTEXT: Geçmişe mi bakıyor, şimdiki duruma mı?
+   └─ Geçmiş → serena memories + claude-mem | Şimdi → diğer tool'lar
+```
+
+#### Anti-Pattern: Kelime Eşleştirmesi
+
+```
+❌ YANLIŞ (Kelime bazlı)
+"hata" kelimesi var → /sc:troubleshoot
+
+✅ DOĞRU (Intent bazlı)
+"Sayfada hata var" → UI sorunu → chrome-devtools
+"Kodda hata var" → Kod analizi → serena
+"Hata yönetimini değiştir" → Refactoring → plan + serena
+```
+
 ---
 
 ## MCP Kullanım Rehberi
