@@ -128,7 +128,7 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 | 3-Strike | 3 denemede çözemediysen → Kullanıcıya sor |
 | Major karar | Birden fazla yaklaşım varsa → Kullanıcıya sor |
 | Döngü önleme | 3 analyze/araştırma sonrası → Kullanıcıya sor |
-| **CLAUDE.md** | Her değişiklik sonrası otomatik commit & push (`~/.claude` repo) |
+| **~/.claude repo** | Her değişiklik sonrası otomatik commit & push (CLAUDE.md, docs/, settings.json, agents/, skills/, commands/, helpers/) |
 
 ### Güvenlik - ASLA Commit Etme
 ```
