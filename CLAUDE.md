@@ -67,7 +67,8 @@
 ### Başlangıç
 ```
 serena list_memories
-├── serena read_memory (project_overview, style_conventions, son session)
+├── Memory varsa → serena read_memory (project_overview, style_conventions, son session)
+├── Memory yoksa → Normal, ilk milestone'da oluşacak
 └── task_plan.md varsa → Yarım görev bildir
 ```
 
@@ -165,13 +166,19 @@ Prompt geldi
 | Refactoring | `rename_symbol`, `replace_symbol_body` |
 | Kayıt | `write_memory` (milestone sonrası) |
 
-### dbhub (Database)
+### dbhub (Database - Gerektiğinde Ekle)
 | İşlem | Tool |
 |-------|------|
 | Şema keşfi | `search_objects` (table, column) |
 | Sorgu | `execute_sql` |
 
-**Ortam seçimi:**
+**Kurulum (proje bazlı):**
+```bash
+# DSN'i application.yml veya .env'den al
+claude mcp add dbhub-dev -- npx -y @bytebase/dbhub --dsn "postgresql://..."
+```
+
+**Ortam seçimi (kurulduysa):**
 - `dbhub-dev` → Geliştirme
 - `dbhub-stage` → Staging/Test
 - `dbhub-test` → Birim test DB
@@ -193,12 +200,14 @@ Prompt geldi
 
 **Ne zaman:** Harici library kullanımı, dependency dokümantasyonu
 
-### claude-flow (Multi-agent - Opsiyonel)
+### claude-flow (Multi-agent Orkestrasyon)
 | İşlem | Tool |
 |-------|------|
 | Agent spawn | `agent spawn -t <type>` |
 | Swarm init | `swarm init --v3-mode` |
 | Memory search | `memory search -q "<query>"` |
+
+**Ne zaman:** Paralel görevler, swarm intelligence, multi-agent workflows
 
 ### claude-mem (Global Memory - Otomatik)
 > **NOT:** Hooks aracılığıyla otomatik çalışır.
