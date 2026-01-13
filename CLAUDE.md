@@ -1,173 +1,171 @@
 # Global Claude Code Talimatları
 
+## ZORUNLU BAŞLANGIÇ (Her Oturum)
+
+```
+1. claude-flow hooks_session-start     → Session başlat
+2. serena list_memories                → Hafızaları listele
+3. serena read_memory (ilgili olanlar) → Context yükle
+4. Görev tipini belirle                → Aşağıdaki tablodan skill seç
+5. Skill invoke et                     → SONRA işe başla
+```
+
+> **ATLANMAZ.** "Basit görev" diye atlama. Prompt kısa olsa bile uygula.
+
+---
+
+## Görev → Skill Eşleştirmesi
+
+| Kullanıcı Ne Diyor | Anlam | Skill | Tracking |
+|--------------------|-------|-------|----------|
+| "hata", "çalışmıyor", "bozuk", "fix" | Bug/Hata | `/sc:troubleshoot` | TodoWrite |
+| "ekle", "yap", "oluştur", "implement" | Feature | `/sc:implement` | TodoWrite |
+| "test", "coverage", "spec" | Test | `/sc:test` | TodoWrite |
+| "analiz", "incele", "bak", "nasıl" | Analiz | `/sc:analyze` | - |
+| "commit", "push", "branch", "PR" | Git | `/sc:git` | - |
+| "refactor", "temizle", "iyileştir" | Refactoring | `superclaude:refactoring-expert` | TodoWrite |
+| "güvenlik", "security", "vulnerability" | Security | `security-scanning:security-sast` | TodoWrite |
+| Karmaşık, çok adımlı | Planlama | `planning-with-files` | + serena |
+
+**Kural:** Emin değilsen `/sc:analyze` ile başla, sonra uygun skill'e geç.
+
+---
+
+## Session Lifecycle
+
+### Başlangıç
+```
+claude-flow hooks_session-start
+├── serena list_memories
+├── serena read_memory (project_overview, style_conventions, son session)
+└── task_plan.md varsa → Yarım görev bildir
+```
+
+### Çalışma
+```
+Skill invoke et (yukarıdaki tablodan)
+├── TodoWrite ile her adımı track et
+├── 5+ adım → planning-with-files kullan
+├── claude-flow hooks_pre-task (görev başı)
+└── Önemli kararları not al
+```
+
+### Görev Sonu
+```
+claude-flow hooks_post-task (success/fail, quality score)
+├── serena write_memory (ne yapıldı, hangi dosyalar değişti)
+├── claude-flow memory_store (özet bilgi)
+└── TodoWrite temizle
+```
+
+### Session Sonu (uzun session veya kullanıcı isterse)
+```
+claude-flow hooks_session-end
+└── Tüm state persist edilir
+```
+
+---
+
+## Tracking Matrisi
+
+| Görev Karmaşıklığı | TodoWrite | planning-with-files | serena memory | claude-flow |
+|--------------------|-----------|---------------------|---------------|-------------|
+| Basit (1-2 adım) | Evet | - | - | post-task |
+| Orta (3-5 adım) | Evet | Opsiyonel | Milestone'da | pre/post-task |
+| Kompleks (5+) | Evet | Evet | Her milestone | Tüm hooks |
+| Multi-session | Evet | Evet | Zorunlu | session-start/end |
+
+---
+
+## MCP Kullanım Rehberi
+
+### serena (Ana Araç)
+| İşlem | Tool |
+|-------|------|
+| Proje context | `list_memories` → `read_memory` |
+| Kod arama | `find_symbol`, `search_for_pattern` |
+| Refactoring | `rename_symbol`, `replace_symbol_body` |
+| Kayıt | `write_memory` (milestone sonrası) |
+
+### claude-flow (Session & Learning)
+| İşlem | Tool |
+|-------|------|
+| Session yönetimi | `hooks_session-start`, `hooks_session-end` |
+| Görev tracking | `hooks_pre-task`, `hooks_post-task` |
+| Pattern öğrenme | `hooks_route`, `hooks_metrics` |
+| Kalıcı memory | `memory_store`, `memory_retrieve` |
+
+### dbhub (Database)
+| İşlem | Tool |
+|-------|------|
+| Şema keşfi | `search_objects` (table, column) |
+| Sorgu | `execute_sql` |
+
+### chrome-devtools (Frontend Debug)
+| İşlem | Tool |
+|-------|------|
+| Sayfa analizi | `take_snapshot`, `take_screenshot` |
+| Interaction | `click`, `fill`, `navigate_page` |
+| Debug | `list_console_messages`, `list_network_requests` |
+
+---
+
 ## Temel Kurallar
 
 | Kural | Detay |
 |-------|-------|
-| Test/Build | Kullanıcı izni gerekli - sormadan yapma |
-| Derleme | Kullanıcı izni gerekli |
-| Tool seçimi | Uygun tool'u sormadan kullan |
-| Skill | Uygunsa direkt invoke et |
-| Soru sorma | Sadece ciddi belirsizlik varsa |
+| Test/Build | Kullanıcı izni gerekli - sormadan çalıştırma |
+| Skill | %1 ihtimal bile olsa invoke et |
+| 3-Strike | 3 denemede çözemediysen → Kullanıcıya sor |
+| Major karar | Birden fazla yaklaşım varsa → Kullanıcıya sor |
 
 ### Güvenlik - ASLA Commit Etme
 ```
 .env, .env.local, .env.production
 credentials.json, secrets.yaml
 *_secret*, *_key*, *_token*
-application-prod.yml
-*.pem, *.key
-```
-
-**Uyarı ver:** Hardcoded password/API key, güvenli olmayan HTTP, SQL injection riski
-
----
-
-## Tool Seçimi
-
-**Prensip:** Anahtar kelime arama, kullanıcının kastını anla.
-
-| Niyet | Tool | Tracking |
-|-------|------|----------|
-| Yeni işlevsellik eklemek istiyor | `/sc:implement` | TodoWrite |
-| Bir şey bozuk/yanlış çalışıyor | `/sc:troubleshoot` | TodoWrite |
-| Versiyon kontrolü işlemi | `/sc:git` | - |
-| Kodu anlamak/incelemek istiyor | `/sc:analyze` | - |
-| Test ile ilgili bir şey | `/sc:test` | TodoWrite |
-| Kodu iyileştirmek istiyor | refactoring | TodoWrite |
-| Çok adımlı/karmaşık iş | `planning-with-files` | + serena |
-| Büyük değişiklik/taşıma | planning-with-files + serena | Hepsi |
-
-**Örnek:**
-- "Şu buton çalışmıyor" → Bug (troubleshoot), "buton" kelimesine takılma
-- "Login ekle" → Feature (implement), kısa olması önemsiz
-- "Şunu bi bak" → Muhtemelen analiz veya debug, bağlamdan anla
-
----
-
-## Session Akışı
-
-### Başlangıç
-```
-1. serena list_memories → Proje hafızası var mı?
-2. serena read_memory (varsa) → Context yükle
-3. task_plan.md var mı? → Yarım görev varsa bildir
-```
-
-### Çalışma
-- TodoWrite ile progress track et
-- 5+ adımlı görevde → planning-with-files başlat
-- Önemli kararları not al
-
-### Milestone Sonrası (Otomatik Kaydet)
-Commit/PR/Test pass/Major refactoring sonrası:
-```
-serena write_memory → Bildir: "Context kaydedildi"
+application-prod.yml, *.pem, *.key
 ```
 
 ---
 
-## Tracking Seçimi
+## Hata Durumları
 
-| Görev Tipi | TodoWrite | planning-with-files | serena |
-|------------|-----------|---------------------|--------|
-| Basit (1-2 adım) | Evet | Hayır | Hayır |
-| Orta (3-5 adım) | Evet | Opsiyonel | Hayır |
-| Kompleks (5+) | Evet | Evet | Milestone'da |
-| Multi-session | Evet | Evet | Evet |
-
----
-
-## MCP Sunucuları
-
-| MCP | Durum | Ana Kullanım |
-|-----|-------|--------------|
-| serena | Aktif | Semantic analiz, memory |
-| chrome-devtools | Aktif | Browser debug |
-| git-mcp | Aktif | GitHub docs |
-| claude-flow | Aktif | Multi-agent |
-| dbhub | Otomatik | Database |
-| claude-mem | Opsiyonel | Global memory (sorunlu) |
-
-> Detaylar: `~/.claude/docs/mcp-reference.md`
-
----
-
-## Pluginler ve Agents
-
-### SC Commands (/sc:*)
-`brainstorm`, `implement`, `test`, `analyze`, `troubleshoot`, `git`, `pm`
-
-### SuperClaude Agents (/superclaude:*)
-`backend-architect`, `frontend-architect`, `security-engineer`, `performance-engineer`, `system-architect`, `refactoring-expert`, `root-cause-analyst`
-
-### Superpowers (Disiplin Katmanı)
-Karmaşık görevlerde kullanılabilir:
-- `brainstorming` - Feature tasarımı
-- `writing-plans` - Multi-step planlama
-- `systematic-debugging` - Karmaşık bug
-- `verification-before-completion` - PR öncesi
-
-### Diğer
-`jvm-languages`, `backend-development`, `security-scanning`, `code-refactoring`, `planning-with-files`
-
----
-
-## Kırmızı Çizgiler
-
-1. **3-Strike Rule:** 3 denemede çözemediysen → Kullanıcıya sor
-2. **Güvenlik dosyaları:** ASLA commit etme
-3. **Major kararlar:** Birden fazla yaklaşım varsa → Kullanıcıya sor
-4. **Test/Build:** Kullanıcı izni olmadan çalıştırma
+| Hata | Aksiyon |
+|------|---------|
+| serena read failed | "Context bulunamadı, sıfırdan mı başlayalım?" |
+| MCP disconnect | `claude mcp list` kontrol, kullanıcıya bildir |
+| 3x tool failure | Durumu açıkla, alternatif öner |
+| Skill bulunamadı | Closest match kullan, bildir |
 
 ---
 
 ## CLI Araçları
 
-### repomix
 ```bash
-repomix                  # Mevcut dizini pack et
-repomix --compress       # Sıkıştırılmış output
-repomix --remote user/repo
+# Maven
+./mvnw compile|test|package
+
+# Git
+git status|diff|log
+
+# Repomix (büyük analiz için)
+repomix --compress
+
+# MCP
+claude mcp list|add|remove
 ```
 
-**Tetikleyiciler:** Onboarding, major migration, 10+ dosya değişikliği
-
 ---
 
-## Hata Durumunda
-
-| Hata | Aksiyon |
-|------|---------|
-| serena read failed | "Context bulunamadı, sıfırdan mı?" |
-| MCP disconnect | `claude mcp list` ile kontrol |
-| 3x tool failure | Kullanıcıya açıkla |
-
-> Detaylar: `~/.claude/docs/troubleshooting.md`
-
----
-
-## Bakım
-
-### CLAUDE.md Değişikliği
-```bash
-cd ~/.claude && git add -A && git commit -m "Update: <açıklama>" && git push
-```
-
-> Detaylar: `~/.claude/docs/maintenance.md`
-
----
-
-## Referans Dosyaları
-
-Detaylı bilgi için:
-- `~/.claude/docs/mcp-reference.md` - MCP araçları
-- `~/.claude/docs/workflows.md` - Görev akışları
-- `~/.claude/docs/maintenance.md` - Bakım
-- `~/.claude/docs/troubleshooting.md` - Hata kurtarma
-
----
-
-## Dil Tercihi
+## Dil & Format
 - Türkçe iletişim tercih edilir
 - Kod ve teknik terimler İngilizce kalabilir
+- Tablo formatı kullan (okunabilirlik)
+
+---
+
+## Referanslar
+- `~/.claude/docs/mcp-reference.md` - MCP detayları
+- `~/.claude/docs/workflows.md` - Görev akışları
+- `~/.claude/docs/troubleshooting.md` - Hata kurtarma
