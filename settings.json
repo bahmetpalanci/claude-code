@@ -50,12 +50,32 @@
     "defaultMode": "acceptEdits"
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/bap/.claude-mem/hooks/session-start.js"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/ccnotify/ccnotify.py UserPromptSubmit"
+            "command": "node /Users/bap/.claude-mem/hooks/user-prompt-submit.js"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/bap/.claude-mem/hooks/post-tool-use.js"
           }
         ]
       }
@@ -65,17 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/ccnotify/ccnotify.py Stop"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/ccnotify/ccnotify.py Notification"
+            "command": "node /Users/bap/.claude-mem/hooks/stop.js"
           }
         ]
       }
@@ -93,7 +103,8 @@
     "security-compliance@wshobson-agents": true,
     "security-scanning@wshobson-agents": true,
     "backend-development@wshobson-agents": true,
-    "code-refactoring@wshobson-agents": true
+    "code-refactoring@wshobson-agents": true,
+    "claude-notifications-go@claude-notifications-go": true
   },
   "alwaysThinkingEnabled": true
 }
