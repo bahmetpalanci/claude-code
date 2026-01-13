@@ -53,6 +53,7 @@ Güncellemek ister misin?
 | Kontrol | Aksiyon |
 |---------|---------|
 | CLAUDE.md review | Güncel mi? |
+| Skill listesi | `/sc:help` ile CLAUDE.md tablosunu karşılaştır |
 | Kullanılmayan MCP | `claude mcp remove` |
 | Disk kullanımı | `du -sh ~/.claude*` |
 
