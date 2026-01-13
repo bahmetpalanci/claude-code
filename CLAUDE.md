@@ -40,7 +40,7 @@
 | "tahmin", "estimate", "ne kadar sürer" | Estimate | `/sc:estimate` | - |
 | "açıkla", "öğret", "explain" | Education | `/sc:explain` | - |
 | "workflow", "PRD", "akış" | Workflow | `/sc:workflow` | TodoWrite |
-| Karmaşık, çok adımlı (5+) | Planlama | `planning-with-files` | + serena |
+| Karmaşık görev (6+ adım, multi-session, araştırma) | Planlama | `planning-with-files` | + TodoWrite |
 
 ### Özel Komutlar
 
@@ -75,8 +75,9 @@ serena list_memories
 ### Çalışma
 ```
 Skill invoke et (yukarıdaki tablodan)
-├── TodoWrite ile her adımı track et
-├── 5+ adım → planning-with-files kullan
+├── TodoWrite ile her adımı track et (anlık)
+├── 6+ adım / multi-session / araştırma → planning-with-files (kalıcı)
+│   └── task_plan.md + findings.md + progress.md oluştur
 └── Önemli kararları not al
 ```
 
@@ -90,14 +91,141 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 
 ---
 
-## Tracking Matrisi
+## Tracking: TodoWrite vs Planning Files
 
-| Görev Karmaşıklığı | TodoWrite | planning-with-files | serena memory |
-|--------------------|-----------|---------------------|---------------|
+### Amaç Farkı
+
+| Araç | Amaç | Yaşam Süresi | Ne Zaman |
+|------|------|--------------|----------|
+| **TodoWrite** | Anlık adım takibi (RAM) | Session içi | Her görev |
+| **Planning Files** | Persistent state (Disk) | Session'lar arası | Kompleks görevler |
+
+> **Kural:** TodoWrite = "Şimdi ne yapıyorum?", Planning Files = "Neredeydim, nereye gidiyorum?"
+
+### Karmaşıklık Matrisi
+
+| Görev Karmaşıklığı | TodoWrite | Planning Files | serena memory |
+|--------------------|-----------|----------------|---------------|
 | Basit (1-2 adım) | Evet | - | - |
 | Orta (3-5 adım) | Evet | Opsiyonel | Milestone sonunda |
-| Kompleks (5+) | Evet | Evet | Her milestone sonunda |
-| Multi-session | Evet | Evet | Zorunlu (her session) |
+| Kompleks (6+ adım) | Evet | **Zorunlu** | Her milestone |
+| Multi-session | Evet | **Zorunlu** | Her session başı/sonu |
+| Araştırma/Research | Evet | **Zorunlu** | Keşif sonrası |
+
+### Anti-Pattern
+
+```
+❌ YANLIŞ: TodoWrite'ı persistence için kullanmak
+   → Session bitince kaybolur
+
+✅ DOĞRU: TodoWrite = anlık tracking, Planning Files = kalıcı state
+```
+
+---
+
+## Planning with Files Workflow
+
+> **Felsefe:** `Context Window = RAM (volatile)` → `Filesystem = Disk (persistent)`
+
+### Tetikleme Kriterleri
+
+```
+Planning Files KULLAN eğer:
+├─ 6+ adım gerektiren görev
+├─ Birden fazla session'a yayılabilecek iş
+├─ Araştırma/keşif gerektiren görev
+├─ 3+ dosya değişikliği
+└─ Önemli kararlar içeren iş
+
+Planning Files KULLANMA eğer:
+├─ Tek dosya düzenleme
+├─ Basit soru-cevap
+└─ Quick lookup
+```
+
+### Zorunlu 3 Dosya
+
+| Dosya | Amaç | Ne Zaman Güncelle |
+|-------|------|-------------------|
+| `task_plan.md` | Fazlar, ilerleme, kararlar | Her faz sonrası |
+| `findings.md` | Araştırma, keşifler, notlar | Her keşif anında |
+| `progress.md` | Session logu, test sonuçları | Sürekli |
+
+**Dosya Konumu:** Proje root dizini (skill klasörü DEĞİL)
+
+### Temel Kurallar
+
+#### 1. Plan First (Zorunlu)
+```
+Kompleks görev başlangıcı
+└─ ÖNCE task_plan.md oluştur
+   └─ SONRA işe başla
+```
+
+#### 2. 2-Action Rule
+```
+Her 2 araştırma/arama işleminden sonra
+└─ Bulguları HEMEN findings.md'ye yaz
+   └─ Multimodal bilgi (screenshot, PDF) özellikle kaybolur
+```
+
+#### 3. Read Before Decide
+```
+Önemli karar vermeden önce
+└─ task_plan.md'yi oku
+   └─ Hedefler attention window'da taze kalır
+```
+
+#### 4. Update After Act
+```
+Her faz tamamlandığında
+├─ Status güncelle: in_progress → complete
+├─ Karşılaşılan hataları logla
+└─ Değiştirilen dosyaları not et
+```
+
+#### 5. 3-Strike → File Log
+```
+Hata oluştu
+├─ 1. deneme: Tanı & düzelt
+├─ 2. deneme: Farklı yaklaşım dene
+├─ 3. deneme: Varsayımları sorgula
+└─ 3 başarısız → task_plan.md'ye logla + kullanıcıya sor
+```
+
+### Read vs Write Karar Matrisi
+
+| Durum | Aksiyon | Neden |
+|-------|---------|-------|
+| Dosya yeni yazdım | OKUMA | Context'te zaten var |
+| Görsel/PDF inceledim | HEMEN YAZ | Multimodal → text kaybolur |
+| Browser data döndü | YAZ | Screenshot persist etmez |
+| Yeni faza başlıyorum | OKU | Context tazelensin |
+| Hata oluştu | OKU | Güncel state lazım |
+| Session'a devam | HEPSİNİ OKU | State recovery |
+
+### 5-Soru Context Testi
+
+Bu soruları cevaplayabiliyorsan context yönetimi sağlam:
+
+| Soru | Kaynak |
+|------|--------|
+| Neredeyim? | task_plan.md (aktif faz) |
+| Nereye gidiyorum? | task_plan.md (kalan fazlar) |
+| Hedef ne? | task_plan.md (goal statement) |
+| Ne öğrendim? | findings.md |
+| Ne yaptım? | progress.md |
+
+### Superpowers Entegrasyonu
+
+| Superpowers Skill | Planning Files İlişkisi |
+|-------------------|-------------------------|
+| `writing-plans` | task_plan.md otomatik oluşturur |
+| `executing-plans` | task_plan.md'yi checkpoint'lerle takip eder |
+| `systematic-debugging` | findings.md'ye root cause analizi yazar |
+| `verification-before-completion` | progress.md'yi kontrol eder |
+
+> **NOT:** Superpowers skill'leri planning-with-files ile uyumlu çalışır. Manuel dosya oluşturma veya superpowers otomasyonu - ikisi de geçerli.
 
 ---
 
