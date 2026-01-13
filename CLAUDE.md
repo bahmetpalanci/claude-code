@@ -130,12 +130,15 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 
 > **Kural:** Prompt'un ne söylediğine değil, **ne yapmak istediğine** bak.
 
-| Intent (Kullanıcı Ne İstiyor) | Örnek Promptlar | MCP | İlk Tool |
-|-------------------------------|-----------------|-----|----------|
-| **UI/Sayfa/Tarayıcı debug** | "Sayfada hata var", "Buton çalışmıyor", "Network hatası", "Console'da ne var?" | chrome-devtools | `take_snapshot` |
-| **Veritabanı sorgu/kontrol** | "Bu kayıt var mı?", "Tabloda kaç satır?", "Şema nasıl?", "FK kontrolü" | dbhub-* | `search_objects` |
-| **Harici library/docs** | "Bu library nasıl kullanılır?", "Repo docs nerede?", "API referansı" | git-mcp | docs fetch |
-| **Kod analizi/refactoring** | "Bu fonksiyon ne yapıyor?", "Referansları bul", "Rename yap" | serena | `find_symbol` |
+| Intent (Kullanıcı Ne İstiyor) | Örnek Promptlar | MCP/Tool | İlk Aksiyon |
+|-------------------------------|-----------------|----------|-------------|
+| **UI/Sayfa/Tarayıcı debug** | "Sayfada hata var", "Buton çalışmıyor", "Network hatası" | chrome-devtools | `take_snapshot` |
+| **Veritabanı sorgu/kontrol** | "Bu kayıt var mı?", "Tabloda kaç satır?", "Şema nasıl?" | dbhub-* | `search_objects` |
+| **Harici library/docs** | "Bu library nasıl kullanılır?", "API referansı" | git-mcp | docs fetch |
+| **Spesifik sembol/fonksiyon** | "Bu fonksiyon ne yapıyor?", "Referansları bul" | serena | `find_symbol` |
+| **Tüm codebase analizi** | "Proje yapısı nasıl?", "Token dağılımı", "Genel mimari" | repomix | `--token-count-tree` |
+| **Büyük refactoring (10+ dosya)** | "Tüm service'leri refactor et", "Pattern değiştir" | repomix | `--compress --include` |
+| **Harici repo inceleme** | "Bu repo nasıl çalışıyor?", "Şu projeyi analiz et" | repomix | `--remote user/repo` |
 | **Geçmiş context** | "Daha önce ne yaptık?", "Son session'da ne vardı?" | serena + claude-mem | `list_memories` |
 | **Multi-agent orkestrasyon** | "Paralel çalıştır", "Agent spawn" | claude-flow | `agent spawn` |
 
@@ -147,12 +150,30 @@ Prompt geldi
 │   └─ take_snapshot → list_console_messages → list_network_requests
 ├─ Veritabanı/Veri → dbhub (dev/stage/test)
 │   └─ search_objects → execute_sql
-├─ Harici library → git-mcp
-│   └─ docs fetch
-├─ Kod okuma/yazma → serena
-│   └─ find_symbol → replace_symbol_body
+├─ Harici library docs → git-mcp
+│   └─ fetch_generic_documentation
+├─ Kod okuma/yazma
+│   ├─ Spesifik sembol/fonksiyon → serena
+│   │   └─ find_symbol → replace_symbol_body
+│   └─ Geniş kapsamlı analiz → repomix (aşağıya bak)
+├─ Harici repo analizi → repomix --remote
 └─ Geçmiş context → serena memories + claude-mem
 ```
+
+### Serena vs Repomix Karar Mantığı
+
+```
+Kod analizi gerekiyor
+├─ Tek sembol/fonksiyon arama? → serena find_symbol
+├─ Referans bulma? → serena find_referencing_symbols
+├─ Tek dosya okuma? → serena get_symbols_overview
+├─ 10+ dosya etkileyen değişiklik? → repomix --compress
+├─ Tüm proje yapısı/token analizi? → repomix --token-count-tree
+├─ Harici GitHub repo? → repomix --remote user/repo
+└─ AI'a tam codebase besleme? → repomix --compress --style xml
+```
+
+**Kural:** Spesifik → serena, Geniş kapsamlı → repomix
 
 ---
 
@@ -195,10 +216,30 @@ claude mcp add dbhub-dev -- npx -y @bytebase/dbhub --dsn "postgresql://..."
 ### git-mcp (Repo Dokümantasyon)
 | İşlem | Tool |
 |-------|------|
-| Library docs | docs fetch |
-| README getir | get_readme |
+| Library docs | `fetch_generic_documentation` |
+| Kod arama | `search_generic_code` |
 
 **Ne zaman:** Harici library kullanımı, dependency dokümantasyonu
+
+### repomix (Codebase Paketleme)
+| İşlem | Komut |
+|-------|-------|
+| Token dağılımı görme | `repomix --token-count-tree` |
+| Sıkıştırılmış analiz | `repomix --compress` |
+| Harici repo analizi | `repomix --remote user/repo --compress` |
+| Belirli dosyalar | `repomix --include "src/**/*.ts" --ignore "**/*.test.ts"` |
+| XML çıktı (AI için) | `repomix --compress --style xml -o analysis.xml` |
+
+**Ne zaman:**
+- Tüm proje yapısını anlama
+- 10+ dosya etkileyen refactoring planı
+- Harici GitHub repo inceleme
+- Token bütçesi optimizasyonu (~%70 azaltma)
+
+**Ne zaman KULLANMA:**
+- Tek sembol/fonksiyon arama → serena
+- Spesifik dosya okuma → serena
+- Referans bulma → serena
 
 ### claude-flow (Multi-agent Orkestrasyon)
 | İşlem | Tool |
@@ -263,8 +304,12 @@ application-prod.yml, *.pem, *.key
 # Git
 git status|diff|log
 
-# Repomix (büyük analiz için)
-repomix --compress
+# Repomix
+repomix --token-count-tree              # Token dağılımı görselleştir
+repomix --compress                       # ~%70 token azaltma
+repomix --compress --style xml           # AI-friendly XML çıktı
+repomix --remote user/repo --compress    # Harici repo analizi
+repomix --include "src/**" --ignore "**/*.test.*"  # Filtreleme
 
 # MCP
 claude mcp list|add|remove
