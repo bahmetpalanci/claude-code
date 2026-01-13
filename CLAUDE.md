@@ -3,11 +3,10 @@
 ## ZORUNLU BAŞLANGIÇ (Her Oturum)
 
 ```
-1. claude-flow hooks_session-start     → Session başlat
-2. serena list_memories                → Hafızaları listele
-3. serena read_memory (ilgili olanlar) → Context yükle
-4. Görev tipini belirle                → Aşağıdaki tablodan skill seç
-5. Skill invoke et                     → SONRA işe başla
+1. serena list_memories                → Hafızaları listele
+2. serena read_memory (ilgili olanlar) → Context yükle
+3. Görev tipini belirle                → Aşağıdaki tablodan skill seç
+4. Skill invoke et                     → SONRA işe başla
 ```
 
 > **ATLANMAZ.** "Basit görev" diye atlama. Prompt kısa olsa bile uygula.
@@ -23,11 +22,14 @@
 | "test", "coverage", "spec" | Test | `/sc:test` | TodoWrite |
 | "analiz", "incele", "bak", "nasıl" | Analiz | `/sc:analyze` | - |
 | "commit", "push", "branch", "PR" | Git | `/sc:git` | - |
-| "refactor", "temizle", "iyileştir" | Refactoring | `superclaude:refactoring-expert` | TodoWrite |
-| "güvenlik", "security", "vulnerability" | Security | `security-scanning:security-sast` | TodoWrite |
+| "refactor", "temizle", "iyileştir" | Refactoring | `/sc:improve` | TodoWrite |
+| "güvenlik", "security", "vulnerability" | Security | `/sc:analyze` | TodoWrite |
+| "dokümantasyon", "README", "açıkla" | Docs | `/sc:document` | - |
 | Karmaşık, çok adımlı | Planlama | `planning-with-files` | + serena |
 
-**Kural:** Emin değilsen `/sc:analyze` ile başla, sonra uygun skill'e geç.
+**Kurallar:**
+- Emin değilsen `/sc:analyze` ile başla, sonra uygun skill'e geç
+- **3 analyze sonrası hala belirsizse → Kullanıcıya sor** (döngü önleme)
 
 ---
 
@@ -35,8 +37,7 @@
 
 ### Başlangıç
 ```
-claude-flow hooks_session-start
-├── serena list_memories
+serena list_memories
 ├── serena read_memory (project_overview, style_conventions, son session)
 └── task_plan.md varsa → Yarım görev bildir
 ```
@@ -46,34 +47,27 @@ claude-flow hooks_session-start
 Skill invoke et (yukarıdaki tablodan)
 ├── TodoWrite ile her adımı track et
 ├── 5+ adım → planning-with-files kullan
-├── claude-flow hooks_pre-task (görev başı)
 └── Önemli kararları not al
 ```
 
-### Görev Sonu
+### Görev/Milestone Sonu
 ```
-claude-flow hooks_post-task (success/fail, quality score)
-├── serena write_memory (ne yapıldı, hangi dosyalar değişti)
-├── claude-flow memory_store (özet bilgi)
+serena write_memory (ne yapıldı, hangi dosyalar değişti)
 └── TodoWrite temizle
 ```
 
-### Session Sonu (uzun session veya kullanıcı isterse)
-```
-claude-flow hooks_session-end
-└── Tüm state persist edilir
-```
+**Milestone Tanımı:** Commit, PR, Test pass, Major refactoring tamamlandığında
 
 ---
 
 ## Tracking Matrisi
 
-| Görev Karmaşıklığı | TodoWrite | planning-with-files | serena memory | claude-flow |
-|--------------------|-----------|---------------------|---------------|-------------|
-| Basit (1-2 adım) | Evet | - | - | post-task |
-| Orta (3-5 adım) | Evet | Opsiyonel | Milestone'da | pre/post-task |
-| Kompleks (5+) | Evet | Evet | Her milestone | Tüm hooks |
-| Multi-session | Evet | Evet | Zorunlu | session-start/end |
+| Görev Karmaşıklığı | TodoWrite | planning-with-files | serena memory |
+|--------------------|-----------|---------------------|---------------|
+| Basit (1-2 adım) | Evet | - | - |
+| Orta (3-5 adım) | Evet | Opsiyonel | Milestone sonunda |
+| Kompleks (5+) | Evet | Evet | Her milestone sonunda |
+| Multi-session | Evet | Evet | Zorunlu (her session) |
 
 ---
 
@@ -86,14 +80,6 @@ claude-flow hooks_session-end
 | Kod arama | `find_symbol`, `search_for_pattern` |
 | Refactoring | `rename_symbol`, `replace_symbol_body` |
 | Kayıt | `write_memory` (milestone sonrası) |
-
-### claude-flow (Session & Learning)
-| İşlem | Tool |
-|-------|------|
-| Session yönetimi | `hooks_session-start`, `hooks_session-end` |
-| Görev tracking | `hooks_pre-task`, `hooks_post-task` |
-| Pattern öğrenme | `hooks_route`, `hooks_metrics` |
-| Kalıcı memory | `memory_store`, `memory_retrieve` |
 
 ### dbhub (Database)
 | İşlem | Tool |
@@ -108,6 +94,13 @@ claude-flow hooks_session-end
 | Interaction | `click`, `fill`, `navigate_page` |
 | Debug | `list_console_messages`, `list_network_requests` |
 
+### claude-flow (Opsiyonel - Multi-agent)
+| İşlem | Tool |
+|-------|------|
+| Agent spawn | `agent spawn -t <type>` |
+| Swarm init | `swarm init --v3-mode` |
+| Memory search | `memory search -q "<query>"` |
+
 ---
 
 ## Temel Kurallar
@@ -118,6 +111,7 @@ claude-flow hooks_session-end
 | Skill | %1 ihtimal bile olsa invoke et |
 | 3-Strike | 3 denemede çözemediysen → Kullanıcıya sor |
 | Major karar | Birden fazla yaklaşım varsa → Kullanıcıya sor |
+| Döngü önleme | 3 analyze/araştırma sonrası → Kullanıcıya sor |
 
 ### Güvenlik - ASLA Commit Etme
 ```
@@ -169,3 +163,4 @@ claude mcp list|add|remove
 - `~/.claude/docs/mcp-reference.md` - MCP detayları
 - `~/.claude/docs/workflows.md` - Görev akışları
 - `~/.claude/docs/troubleshooting.md` - Hata kurtarma
+- `~/.claude/docs/maintenance.md` - Bakım ve güncelleme
