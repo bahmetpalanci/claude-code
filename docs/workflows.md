@@ -93,25 +93,14 @@ Superpowers = Disiplin katmanı. Karmaşık görevlerde kullanılabilir:
 
 ## Session Akışı
 
-### Başlangıç
-```
-1. serena list_memories → Proje hafızası var mı?
-2. serena read_memory (varsa) → Context yükle
-3. task_plan.md var mı? → Devam mı, yeni mi?
-```
+> **Detay için:** Ana CLAUDE.md → Session Lifecycle bölümüne bak.
 
-### Çalışma Sırasında
-- TodoWrite ile progress track et
-- Kompleks görevde planning-with-files kullan
-- Önemli kararları not al
+**Kısa özet:**
+1. `serena list_memories` → Context yükle
+2. Görev tipine göre skill seç (CLAUDE.md tablosu)
+3. Milestone'da `serena write_memory`
 
-### Bitiş (Milestone)
-```
-Milestone = Commit, PR, Test pass, Major refactoring
-
-→ serena write_memory otomatik çalışır
-→ Kullanıcıya bildir: "Context kaydedildi"
-```
+**Milestone:** Commit, PR, Test pass, Major refactoring
 
 ---
 

@@ -46,10 +46,13 @@
 
 | Komut | Açıklama |
 |-------|----------|
-| `/sc:pm` | Project Manager - Varsayılan orkestratör |
+| `/sc:help` | Tüm komutları listele |
 | `/sc:spawn` | Meta-system task orchestration |
+| `/sc:task` | Kompleks task yürütme |
 | `/sc:index` | Proje dokümantasyonu oluştur |
-| `/sc:index-repo` | Token-efficient repo indexing (%94 sıkıştırma) |
+| `/sc:select-tool` | Akıllı MCP tool seçimi |
+| `/sc:recommend` | Uygun komut önerisi |
+| `/sc:agent` | Agent yönetimi |
 | `/sc:load` / `/sc:save` | Session lifecycle management |
 | `/sc:reflect` | Task reflection ve validation |
 | `/sc:spec-panel` | Multi-expert specification review |
@@ -396,13 +399,18 @@ claude mcp add dbhub-dev -- npx -y @bytebase/dbhub --dsn "postgresql://..."
 
 **Ne zaman:** UI hataları, network sorunları, DOM analizi
 
-### git-mcp (Repo Dokümantasyon)
+### git-mcp (GitHub Repo Erişimi)
 | İşlem | Tool |
 |-------|------|
-| Library docs | `fetch_generic_documentation` |
+| Repo docs | `fetch_generic_documentation` |
 | Kod arama | `search_generic_code` |
+| URL içerik | `fetch_generic_url_content` |
 
-**Ne zaman:** Harici library kullanımı, dependency dokümantasyonu
+**Ne zaman:**
+- GitHub repo dokümantasyonu (README, docs/)
+- Library API referansları
+- **Repo içi kod arama** (herhangi bir public repo)
+- Harici proje yapısı anlama
 
 ### repomix (Codebase Paketleme)
 | İşlem | Komut |
@@ -424,12 +432,35 @@ claude mcp add dbhub-dev -- npx -y @bytebase/dbhub --dsn "postgresql://..."
 - Spesifik dosya okuma → serena
 - Referans bulma → serena
 
+### repomix MCP Server Modu
+```bash
+# MCP server olarak çalıştır
+repomix --mcp
+
+# Claude Code skill oluştur
+repomix --skill-generate
+```
+
+**MCP modu araçları:**
+| Tool | Kullanım |
+|------|----------|
+| `pack_codebase` | Repo paketleme |
+| `read_file_content` | Güvenli dosya okuma |
+| `search_codebase` | Kod arama |
+| `get_tree_structure` | Proje yapısı |
+
 ### claude-flow (Multi-agent Orkestrasyon)
+
+> **NOT:** claude-flow harici bir orkestrasyon platformudur. 64 specialized agent,
+> 100+ MCP tool içerir. Ayrı kurulum ve konfigürasyon gerektirir.
+
 | İşlem | Tool |
 |-------|------|
 | Agent spawn | `agent spawn -t <type>` |
 | Swarm init | `swarm init --v3-mode` |
 | Memory search | `memory search -q "<query>"` |
+| Task yönetimi | `task create`, `task list`, `task status` |
+| Hooks | `hooks pre-task`, `hooks post-task` |
 
 **Ne zaman:** Paralel görevler, swarm intelligence, multi-agent workflows
 

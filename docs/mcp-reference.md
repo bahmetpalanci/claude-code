@@ -64,6 +64,94 @@
 
 ---
 
+## repomix (yamadashy/repomix)
+**Repo:** https://github.com/yamadashy/repomix
+**Durum:** Aktif
+
+**Çalışma Modları:**
+- CLI tool (varsayılan)
+- MCP Server (`--mcp` flag)
+
+**CLI Özellikleri:**
+| Komut | Kullanım |
+|-------|----------|
+| `--token-count-tree` | Token dağılımı görselleştir |
+| `--compress` | ~%70 token azaltma |
+| `--remote user/repo` | Harici repo analizi |
+| `--style xml/md/json` | Çıktı formatı |
+| `--skill-generate` | Claude Code skill oluştur |
+
+**MCP Server Araçları:**
+| Tool | Kullanım |
+|------|----------|
+| `pack_codebase` | Repo paketleme |
+| `search_codebase` | Kod arama |
+| `get_tree_structure` | Proje yapısı |
+| `read_file_content` | Güvenli dosya okuma |
+
+**Ne zaman kullanılır:**
+- Tüm proje yapısını anlama
+- 10+ dosya etkileyen refactoring planı
+- AI'a tam codebase besleme
+- Harici GitHub repo inceleme
+
+**Ne zaman KULLANMA:**
+- Tek sembol/fonksiyon arama → serena
+- Spesifik dosya okuma → serena
+- Referans bulma → serena
+
+---
+
+## planning-with-files (Plugin)
+**Durum:** Aktif (enabled plugin)
+
+**Amaç:** Kompleks görevlerde persistent state yönetimi
+
+**Tetikleme Kriterleri:**
+- 6+ adım gerektiren görev
+- Multi-session iş
+- Araştırma/keşif gerektiren görev
+- 3+ dosya değişikliği
+
+**Zorunlu Dosyalar:**
+| Dosya | Amaç | Ne Zaman Güncelle |
+|-------|------|-------------------|
+| `task_plan.md` | Fazlar, ilerleme, kararlar | Her faz sonrası |
+| `findings.md` | Araştırma bulguları | Her keşif anında |
+| `progress.md` | Session log, test sonuçları | Sürekli |
+
+**Temel Kurallar:**
+- Plan First: Önce task_plan.md oluştur
+- 2-Action Rule: Her 2 araştırmadan sonra findings.md güncelle
+- Read Before Decide: Karar öncesi plan oku
+
+---
+
+## superpowers (Plugin)
+**Durum:** Aktif (16 skill, otomatik tetiklenir)
+
+**Önemli:** Bu skill'ler context'e göre otomatik aktive olur. Manuel invoke gerekmez.
+
+**Otomatik Tetiklenen Skill'ler:**
+| Skill | Tetikleme Koşulu |
+|-------|------------------|
+| `brainstorming` | Feature başlangıcı |
+| `systematic-debugging` | Bug fix |
+| `test-driven-development` | Test yazımı |
+| `verification-before-completion` | İş bitiminde |
+| `writing-plans` → `executing-plans` | Multi-step task |
+| `requesting-code-review` | PR öncesi |
+| `receiving-code-review` | PR feedback |
+| `using-git-worktrees` | Parallel work |
+
+**Diğer Skill'ler:**
+- `dispatching-parallel-agents` - Concurrent subagent workflows
+- `subagent-driven-development` - Two-stage review
+- `finishing-a-development-branch` - Merge/PR/keep/discard
+- `writing-skills` - Yeni skill oluşturma
+
+---
+
 ## claude-flow (ruvnet/claude-flow)
 **Repo:** https://github.com/ruvnet/claude-flow
 **Durum:** Aktif (singleton script ile)

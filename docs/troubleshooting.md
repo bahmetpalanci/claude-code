@@ -20,9 +20,14 @@
 |------|----------|
 | serena memory read FAILED | Kullanıcıya sor: "Önceki context bulunamadı, sıfırdan mı başlayalım?" |
 | MCP disconnect | `claude mcp list` → Bağlı değilse kullanıcıya bildir |
-| planning-with-files corrupt | Backup'tan oku veya yeniden oluştur |
+| planning-with-files corrupt | 1) Backup kontrol, 2) Serena memory'den recover, 3) Yeniden oluştur |
 | Tool 3x failed | Durumu kullanıcıya açıkla, farklı yaklaşım öner |
 | Belirsiz görev | AskUserQuestion ile netleştir |
+| repomix timeout | `--include` ile kapsamı daralt, büyük dosyaları exclude et |
+| repomix memory error | `--compress` kullan, binary dosyaları exclude et |
+| Skill bulunamadı | `/sc:help` ile mevcut skill'leri listele, en yakın eşleşmeyi kullan |
+| claude-flow bağlantı hatası | Script'i restart: `~/.claude/scripts/claude-flow-mcp.sh` |
+| git-mcp rate limit | Birkaç dakika bekle, private repo için token ekle |
 
 ---
 
