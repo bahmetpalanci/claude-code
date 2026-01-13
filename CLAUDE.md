@@ -101,6 +101,22 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 | Swarm init | `swarm init --v3-mode` |
 | Memory search | `memory search -q "<query>"` |
 
+### claude-mem (Global Memory - Otomatik)
+> **NOT:** claude-mem hooks aracılığıyla otomatik çalışır. Manuel kullanım gerekmez.
+
+| İşlem | Tool |
+|-------|------|
+| Observation ara | `mcp__plugin_claude-mem_mcp-search__search` |
+| Context getir | `mcp__plugin_claude-mem_mcp-search__timeline` |
+| Detay al | `mcp__plugin_claude-mem_mcp-search__get_observations` |
+
+**Ne zaman kullanılır:**
+- Önceki oturumlarda ne yapıldığını hatırlamak için
+- Proje geçmişini sorgulamak için
+- serena memory'den farklı olarak **tüm projeler** için global context sağlar
+
+**Observation türleri:** `bugfix`, `feature`, `refactor`, `discovery`, `decision`, `change`
+
 ---
 
 ## Temel Kurallar
