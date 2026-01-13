@@ -15,6 +15,8 @@
 
 ## Görev → Skill Eşleştirmesi
 
+### Temel Komutlar
+
 | Kullanıcı Ne Diyor | Anlam | Skill | Tracking |
 |--------------------|-------|-------|----------|
 | "hata", "çalışmıyor", "bozuk", "fix" | Bug/Hata | `/sc:troubleshoot` | TodoWrite |
@@ -25,11 +27,38 @@
 | "refactor", "temizle", "iyileştir" | Refactoring | `/sc:improve` | TodoWrite |
 | "güvenlik", "security", "vulnerability" | Security | `/sc:analyze` | TodoWrite |
 | "dokümantasyon", "README", "açıkla" | Docs | `/sc:document` | - |
-| Karmaşık, çok adımlı | Planlama | `planning-with-files` | + serena |
+
+### Ek Komutlar
+
+| Kullanıcı Ne Diyor | Anlam | Skill | Tracking |
+|--------------------|-------|-------|----------|
+| "tasarım", "mimari", "design" | Architecture | `/sc:design` | TodoWrite |
+| "brainstorm", "düşünelim", "tartışalım" | Discovery | `/sc:brainstorm` | - |
+| "build", "derle", "package" | Build | `/sc:build` | - |
+| "temizle", "dead code", "cleanup" | Cleanup | `/sc:cleanup` | TodoWrite |
+| "araştır", "bul", "research" | Research | `/sc:research` | - |
+| "tahmin", "estimate", "ne kadar sürer" | Estimate | `/sc:estimate` | - |
+| "açıkla", "öğret", "explain" | Education | `/sc:explain` | - |
+| "workflow", "PRD", "akış" | Workflow | `/sc:workflow` | TodoWrite |
+| Karmaşık, çok adımlı (5+) | Planlama | `planning-with-files` | + serena |
+
+### Özel Komutlar
+
+| Komut | Açıklama |
+|-------|----------|
+| `/sc:pm` | Project Manager - Varsayılan orkestratör |
+| `/sc:spawn` | Meta-system task orchestration |
+| `/sc:index` | Proje dokümantasyonu oluştur |
+| `/sc:index-repo` | Token-efficient repo indexing (%94 sıkıştırma) |
+| `/sc:load` / `/sc:save` | Session lifecycle management |
+| `/sc:reflect` | Task reflection ve validation |
+| `/sc:spec-panel` | Multi-expert specification review |
+| `/sc:business-panel` | Business strategy experts panel |
 
 **Kurallar:**
 - Emin değilsen `/sc:analyze` ile başla, sonra uygun skill'e geç
 - **3 analyze sonrası hala belirsizse → Kullanıcıya sor** (döngü önleme)
+- Skill %1 ihtimalle bile geçerliyse invoke et
 
 ---
 
@@ -68,6 +97,31 @@ serena write_memory (ne yapıldı, hangi dosyalar değişti)
 | Orta (3-5 adım) | Evet | Opsiyonel | Milestone sonunda |
 | Kompleks (5+) | Evet | Evet | Her milestone sonunda |
 | Multi-session | Evet | Evet | Zorunlu (her session) |
+
+---
+
+## Superpowers (Otomatik Aktif)
+
+> **NOT:** Bu plugin 16 skill içerir ve **otomatik tetiklenir**. Manuel invoke gerekmez.
+
+| Durum | Tetiklenen Skill | Ne Yapar |
+|-------|------------------|----------|
+| Feature başlangıcı | `brainstorming` | Socratic design discovery |
+| Bug fix | `systematic-debugging` | 4-fazlı root cause analysis |
+| Test yazımı | `test-driven-development` | RED-GREEN-REFACTOR döngüsü |
+| İş bitiminde | `verification-before-completion` | Gerçekten çalışıyor mu? |
+| Multi-step task | `writing-plans` → `executing-plans` | Checkpoint'li execution |
+| PR öncesi | `requesting-code-review` | Pre-review checklist |
+| PR feedback | `receiving-code-review` | Feedback response workflow |
+| Parallel work | `using-git-worktrees` | İzole branch'ler |
+
+**Diğer Superpowers Skills:**
+- `dispatching-parallel-agents` - Concurrent subagent workflows
+- `subagent-driven-development` - Two-stage review (spec → code quality)
+- `finishing-a-development-branch` - Merge/PR/keep/discard decisions
+- `writing-skills` - Yeni skill oluşturma
+
+**Kural:** Bu skill'ler context'e göre otomatik aktive olur. Sadece `%1 ihtimal` kuralı geçerli.
 
 ---
 
