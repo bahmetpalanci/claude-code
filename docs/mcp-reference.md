@@ -128,21 +128,21 @@
 ---
 
 ## superpowers (Plugin)
-**Durum:** Aktif (16 skill, otomatik tetiklenir)
+**Durum:** Aktif (16 skill)
 
-**Önemli:** Bu skill'ler context'e göre otomatik aktive olur. Manuel invoke gerekmez.
+**Önemli:** Bu skill'ler "otomatik" DEĞİL - Claude tetikleyici durumu algıladığında Skill tool ile INVOKE ETMELİ. "Otomatik" ifadesi sadece "manuel kullanıcı talebi olmadan" anlamındadır.
 
-**Otomatik Tetiklenen Skill'ler:**
-| Skill | Tetikleme Koşulu |
-|-------|------------------|
-| `brainstorming` | Feature başlangıcı |
-| `systematic-debugging` | Bug fix |
-| `test-driven-development` | Test yazımı |
-| `verification-before-completion` | İş bitiminde |
-| `writing-plans` → `executing-plans` | Multi-step task |
-| `requesting-code-review` | PR öncesi |
-| `receiving-code-review` | PR feedback |
-| `using-git-worktrees` | Parallel work |
+**Claude'un Invoke Etmesi Gereken Skill'ler:**
+| Skill | Tetikleyici Durum | Claude Ne Yapmalı |
+|-------|-------------------|-------------------|
+| `brainstorming` | Feature başlangıcı | `Skill("brainstorming")` |
+| `systematic-debugging` | Bug fix | `Skill("systematic-debugging")` |
+| `test-driven-development` | Test yazımı | `Skill("test-driven-development")` |
+| `verification-before-completion` | İş bitiminde | `Skill("verification-before-completion")` |
+| `writing-plans` → `executing-plans` | Multi-step task | `Skill("writing-plans")` |
+| `requesting-code-review` | PR öncesi | `Skill("requesting-code-review")` |
+| `receiving-code-review` | PR feedback | `Skill("receiving-code-review")` |
+| `using-git-worktrees` | Parallel work | `Skill("using-git-worktrees")` |
 
 **Diğer Skill'ler:**
 - `dispatching-parallel-agents` - Concurrent subagent workflows

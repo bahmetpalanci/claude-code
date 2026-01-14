@@ -346,9 +346,27 @@ Assistant:
 
 ```
 BAŞLANGIÇ (Session açıldığında):
-  ├─ serena list_memories → İlgili olanları oku
+  ├─ serena list_memories → İlgili olanları oku (aşağıdaki kriterlere göre)
   └─ task_plan.md kontrol → Yarım iş varsa bildir
+```
 
+### Memory Selection Kriterleri
+
+| Memory Adı İçeriği | Ne Zaman Oku | Örnek |
+|--------------------|--------------|-------|
+| `project_overview` | İlk session, proje tanıma | Her zaman önce oku |
+| `style_conventions` | Kod yazacaksan | Refactor, implement, fix |
+| `*-fix`, `*-error`, `compile` | Bug fix yapacaksan | Benzer hatalar için context |
+| `dbhub-*`, `database-*` | DB işlemi varsa | Schema değişikliği, migration |
+| `last-maintenance-*` | Proje durumu lazımsa | Ne zaman ne yapıldı |
+| `session-*` | Önceki session devamıysa | Yarım kalan işler |
+| `task_completion` | Görev tamamlandı mı kontrolü | Verification |
+
+**Kural:** Memory adı prompt'taki anahtar kelimelerle eşleşiyorsa OKU.
+
+### Session Akışı
+
+```
 ÇALIŞMA (Her prompt'ta):
   ├─ Intent→Action tablosuna bak
   ├─ Uygun skill invoke et
