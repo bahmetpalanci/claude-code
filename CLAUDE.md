@@ -1,48 +1,154 @@
 # Global Claude Code Talimatları
 
-## ZORUNLU BAŞLANGIÇ (Her Oturum)
+---
+
+## 🚀 UNIFIED PROMPT ROUTING SYSTEM
+
+> **Her prompt bu sistemden geçer. ATLANMAZ.**
 
 ```
-1. serena list_memories                → Hafızaları listele
-2. serena read_memory (ilgili olanlar) → Context yükle
-3. Görev tipini belirle                → Aşağıdaki tablodan skill seç
-4. Skill invoke et                     → SONRA işe başla
+PROMPT GELDİ
+     │
+     ▼
+┌─────────────────────────────────────────────────────────┐
+│  ADIM 0: SESSION KONTROLÜ (Sadece ilk prompt)           │
+│  ───────────────────────────────────────────            │
+│  □ serena activate_project                              │
+│  □ serena list_memories → read_memory (ilgili olanlar)  │
+│  □ task_plan.md var mı? → Varsa kullanıcıya bildir      │
+└─────────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────────┐
+│  ADIM 1: INTENT EXTRACTION (Her prompt)                 │
+│  ───────────────────────────────────────────            │
+│  5 SORU:                                                │
+│  1. DOMAIN: UI / DB / Kod / Harici / Orkestrasyon?      │
+│  2. GÖREV: Bug / Feature / Test / Refactor / Analiz?    │
+│  3. KAPSAM: Tek sembol / Çoklu dosya / Tüm proje?       │
+│  4. KARMAŞIKLIK: Basit (1-2) / Orta (3-5) / Kompleks?   │
+│  5. CONTEXT: Yeni iş / Devam / Geçmiş sorgu?            │
+└─────────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────────┐
+│  ADIM 2: MCP SEÇİMİ (Domain-based)                      │
+│  ───────────────────────────────────────────            │
+│  UI/Browser      → chrome-devtools                      │
+│  Database        → dbhub-* (dev/stage/test)             │
+│  Kod (spesifik)  → serena                               │
+│  Kod (geniş)     → repomix                              │
+│  Harici repo     → git-mcp                              │
+│  Multi-agent     → claude-flow                          │
+│  Geçmiş context  → serena memories + claude-mem         │
+└─────────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────────┐
+│  ADIM 3: SKILL SEÇİMİ (Task-based)                      │
+│  ───────────────────────────────────────────            │
+│  Bug/Hata    → systematic-debugging + /sc:troubleshoot  │
+│  Feature     → brainstorming + /sc:implement            │
+│  Test        → test-driven-development + /sc:test       │
+│  Refactor    → /sc:improve                              │
+│  Analiz      → /sc:analyze                              │
+│  Kompleks    → planning-with-files + writing-plans      │
+│  Security    → security-scanning:*                      │
+│  Backend     → backend-development:*                    │
+└─────────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────────┐
+│  ADIM 4: TRACKING & PERSISTENCE                         │
+│  ───────────────────────────────────────────            │
+│  Her adım       → TodoWrite                             │
+│  Kompleks (6+)  → task_plan.md + findings.md            │
+│  Milestone      → serena write_memory                   │
+└─────────────────────────────────────────────────────────┘
 ```
-
-> **ATLANMAZ.** "Basit görev" diye atlama. Prompt kısa olsa bile uygula.
 
 ---
 
-## Görev → Skill Eşleştirmesi
+## 📊 ARAÇ FREKANS KURALLARI
 
-### Temel Komutlar
+### Session Başı (1x - İlk prompt)
+| Araç | Aksiyon | Zorunlu |
+|------|---------|---------|
+| serena | `activate_project` | ✓ |
+| serena | `list_memories` → `read_memory` | ✓ |
+| task_plan.md | Kontrol et, varsa bildir | ✓ |
 
-| Kullanıcı Ne Diyor | Anlam | Skill | Tracking |
-|--------------------|-------|-------|----------|
-| "hata", "çalışmıyor", "bozuk", "fix" | Bug/Hata | `/sc:troubleshoot` | TodoWrite |
-| "ekle", "yap", "oluştur", "implement" | Feature | `/sc:implement` | TodoWrite |
-| "test", "coverage", "spec" | Test | `/sc:test` | TodoWrite |
-| "analiz", "incele", "bak", "nasıl" | Analiz | `/sc:analyze` | - |
-| "commit", "push", "branch", "PR" | Git | `/sc:git` | - |
-| "refactor", "temizle", "iyileştir" | Refactoring | `/sc:improve` | TodoWrite |
-| "güvenlik", "security", "vulnerability" | Security | `/sc:analyze` | TodoWrite |
-| "dokümantasyon", "README", "açıkla" | Docs | `/sc:document` | - |
+### Her Prompt (Sürekli)
+| Kontrol | Aksiyon |
+|---------|---------|
+| Intent | 5 soru ile belirle |
+| MCP | Domain'e göre seç |
+| Skill | Task'a göre seç (aşağıdaki tablodan) |
+| TodoWrite | Aktif görev varsa güncelle |
 
-### Ek Komutlar
+### On-Demand (Gerektiğinde)
+| Araç | Tetikleyici |
+|------|-------------|
+| dbhub-* | DB sorgusu, şema kontrolü, veri doğrulama |
+| chrome-devtools | UI hata, network sorunu, DOM analizi |
+| repomix | Geniş codebase analizi, 10+ dosya refactoring |
+| claude-flow | Paralel görev, multi-agent workflow |
+| git-mcp | Harici library docs, GitHub repo erişimi |
+| planning-with-files | 6+ adım, multi-session, araştırma |
 
-| Kullanıcı Ne Diyor | Anlam | Skill | Tracking |
-|--------------------|-------|-------|----------|
-| "tasarım", "mimari", "design" | Architecture | `/sc:design` | TodoWrite |
-| "brainstorm", "düşünelim", "tartışalım" | Discovery | `/sc:brainstorm` | - |
-| "build", "derle", "package" | Build | `/sc:build` | - |
-| "temizle", "dead code", "cleanup" | Cleanup | `/sc:cleanup` | TodoWrite |
-| "araştır", "bul", "research" | Research | `/sc:research` | - |
-| "tahmin", "estimate", "ne kadar sürer" | Estimate | `/sc:estimate` | - |
-| "açıkla", "öğret", "explain" | Education | `/sc:explain` | - |
-| "workflow", "PRD", "akış" | Workflow | `/sc:workflow` | TodoWrite |
-| Karmaşık görev (6+ adım, multi-session, araştırma) | Planlama | `planning-with-files` | + TodoWrite |
+### Milestone/Task Sonu
+| Araç | Aksiyon |
+|------|---------|
+| serena write_memory | Ne yapıldı, hangi dosyalar değişti |
+| TodoWrite | Temizle |
+| task_plan.md | Status güncelle (tamamlandıysa) |
 
-### Özel Komutlar
+---
+
+## 🎯 DOMAIN → MCP EŞLEŞTİRMESİ
+
+| Domain | Keywords | MCP | İlk Tool |
+|--------|----------|-----|----------|
+| **UI/Browser** | sayfa, buton, form, click, network, DOM, CSS | `chrome-devtools` | `take_snapshot` |
+| **Database** | tablo, kayıt, sorgu, şema, SQL, migration | `dbhub-*` | `search_objects` |
+| **Kod (spesifik)** | fonksiyon, sınıf, metod, bu dosya, referans | `serena` | `find_symbol` |
+| **Kod (geniş)** | proje yapısı, tüm, mimari, token, analiz | `repomix` | `--token-count-tree` |
+| **Harici repo** | library, docs, API, nasıl kullanılır | `git-mcp` | `fetch_generic_documentation` |
+| **Multi-agent** | paralel, agent, spawn, swarm | `claude-flow` | `agent spawn` |
+| **Geçmiş** | daha önce, son session, hatırlıyor musun | `serena` + `claude-mem` | `list_memories` |
+
+### Ortam Seçimi (dbhub)
+| Ortam | MCP | Ne Zaman |
+|-------|-----|----------|
+| Development | `dbhub-dev` | Geliştirme, test verileri |
+| Staging | `dbhub-stage` | Pre-prod, entegrasyon testi |
+| Test | `dbhub-test` | Unit test DB |
+
+---
+
+## 🛠️ TÜM SKİLL KATEGORİLERİ
+
+### SuperClaude (sc:*) - Temel Komutlar
+
+| Kullanıcı Ne Diyor | Skill | Tracking |
+|--------------------|-------|----------|
+| "hata", "çalışmıyor", "bozuk", "fix" | `/sc:troubleshoot` | TodoWrite |
+| "ekle", "yap", "oluştur", "implement" | `/sc:implement` | TodoWrite |
+| "test", "coverage", "spec" | `/sc:test` | TodoWrite |
+| "analiz", "incele", "bak", "nasıl" | `/sc:analyze` | - |
+| "commit", "push", "branch", "PR" | `/sc:git` | - |
+| "refactor", "temizle", "iyileştir" | `/sc:improve` | TodoWrite |
+| "güvenlik", "security", "vulnerability" | `/sc:analyze` | TodoWrite |
+| "dokümantasyon", "README", "açıkla" | `/sc:document` | - |
+| "tasarım", "mimari", "design" | `/sc:design` | TodoWrite |
+| "brainstorm", "düşünelim", "tartışalım" | `/sc:brainstorm` | - |
+| "build", "derle", "package" | `/sc:build` | - |
+| "temizle", "dead code", "cleanup" | `/sc:cleanup` | TodoWrite |
+| "araştır", "bul", "research" | `/sc:research` | - |
+| "tahmin", "estimate", "ne kadar sürer" | `/sc:estimate` | - |
+| "workflow", "PRD", "akış" | `/sc:workflow` | TodoWrite |
+
+### SuperClaude (sc:*) - Özel Komutlar
 
 | Komut | Açıklama |
 |-------|----------|
@@ -57,187 +163,15 @@
 | `/sc:reflect` | Task reflection ve validation |
 | `/sc:spec-panel` | Multi-expert specification review |
 | `/sc:business-panel` | Business strategy experts panel |
+| `/sc:index-repo` | Repository indexing (%94 token azaltma) |
+| `/sc:explain` | Kod/kavram açıklama |
 
-**Kurallar:**
-- Emin değilsen `/sc:analyze` ile başla, sonra uygun skill'e geç
-- **3 analyze sonrası hala belirsizse → Kullanıcıya sor** (döngü önleme)
-- Skill %1 ihtimalle bile geçerliyse invoke et
+### Superpowers (Otomatik Tetiklenir)
 
----
+> **NOT:** Bu skill'ler context'e göre **otomatik aktive** olur. Manuel invoke gerekmez.
 
-## Session Lifecycle
-
-### Başlangıç
-```
-serena list_memories
-├── Memory varsa → serena read_memory (project_overview, style_conventions, son session)
-├── Memory yoksa → Normal, ilk milestone'da oluşacak
-└── task_plan.md varsa → Yarım görev bildir
-```
-
-### Çalışma
-```
-Skill invoke et (yukarıdaki tablodan)
-├── TodoWrite ile her adımı track et (anlık)
-├── 6+ adım / multi-session / araştırma → planning-with-files (kalıcı)
-│   └── task_plan.md + findings.md + progress.md oluştur
-└── Önemli kararları not al
-```
-
-### Görev/Milestone Sonu
-```
-serena write_memory (ne yapıldı, hangi dosyalar değişti)
-└── TodoWrite temizle
-```
-
-**Milestone Tanımı:** Commit, PR, Test pass, Major refactoring tamamlandığında
-
----
-
-## Tracking: TodoWrite vs Planning Files
-
-### Amaç Farkı
-
-| Araç | Amaç | Yaşam Süresi | Ne Zaman |
-|------|------|--------------|----------|
-| **TodoWrite** | Anlık adım takibi (RAM) | Session içi | Her görev |
-| **Planning Files** | Persistent state (Disk) | Session'lar arası | Kompleks görevler |
-
-> **Kural:** TodoWrite = "Şimdi ne yapıyorum?", Planning Files = "Neredeydim, nereye gidiyorum?"
-
-### Karmaşıklık Matrisi
-
-| Görev Karmaşıklığı | TodoWrite | Planning Files | serena memory |
-|--------------------|-----------|----------------|---------------|
-| Basit (1-2 adım) | Evet | - | - |
-| Orta (3-5 adım) | Evet | Opsiyonel | Milestone sonunda |
-| Kompleks (6+ adım) | Evet | **Zorunlu** | Her milestone |
-| Multi-session | Evet | **Zorunlu** | Her session başı/sonu |
-| Araştırma/Research | Evet | **Zorunlu** | Keşif sonrası |
-
-### Anti-Pattern
-
-```
-❌ YANLIŞ: TodoWrite'ı persistence için kullanmak
-   → Session bitince kaybolur
-
-✅ DOĞRU: TodoWrite = anlık tracking, Planning Files = kalıcı state
-```
-
----
-
-## Planning with Files Workflow
-
-> **Felsefe:** `Context Window = RAM (volatile)` → `Filesystem = Disk (persistent)`
-
-### Tetikleme Kriterleri
-
-```
-Planning Files KULLAN eğer:
-├─ 6+ adım gerektiren görev
-├─ Birden fazla session'a yayılabilecek iş
-├─ Araştırma/keşif gerektiren görev
-├─ 3+ dosya değişikliği
-└─ Önemli kararlar içeren iş
-
-Planning Files KULLANMA eğer:
-├─ Tek dosya düzenleme
-├─ Basit soru-cevap
-└─ Quick lookup
-```
-
-### Zorunlu 3 Dosya
-
-| Dosya | Amaç | Ne Zaman Güncelle |
-|-------|------|-------------------|
-| `task_plan.md` | Fazlar, ilerleme, kararlar | Her faz sonrası |
-| `findings.md` | Araştırma, keşifler, notlar | Her keşif anında |
-| `progress.md` | Session logu, test sonuçları | Sürekli |
-
-**Dosya Konumu:** Proje root dizini (skill klasörü DEĞİL)
-
-### Temel Kurallar
-
-#### 1. Plan First (Zorunlu)
-```
-Kompleks görev başlangıcı
-└─ ÖNCE task_plan.md oluştur
-   └─ SONRA işe başla
-```
-
-#### 2. 2-Action Rule
-```
-Her 2 araştırma/arama işleminden sonra
-└─ Bulguları HEMEN findings.md'ye yaz
-   └─ Multimodal bilgi (screenshot, PDF) özellikle kaybolur
-```
-
-#### 3. Read Before Decide
-```
-Önemli karar vermeden önce
-└─ task_plan.md'yi oku
-   └─ Hedefler attention window'da taze kalır
-```
-
-#### 4. Update After Act
-```
-Her faz tamamlandığında
-├─ Status güncelle: in_progress → complete
-├─ Karşılaşılan hataları logla
-└─ Değiştirilen dosyaları not et
-```
-
-#### 5. 3-Strike → File Log
-```
-Hata oluştu
-├─ 1. deneme: Tanı & düzelt
-├─ 2. deneme: Farklı yaklaşım dene
-├─ 3. deneme: Varsayımları sorgula
-└─ 3 başarısız → task_plan.md'ye logla + kullanıcıya sor
-```
-
-### Read vs Write Karar Matrisi
-
-| Durum | Aksiyon | Neden |
-|-------|---------|-------|
-| Dosya yeni yazdım | OKUMA | Context'te zaten var |
-| Görsel/PDF inceledim | HEMEN YAZ | Multimodal → text kaybolur |
-| Browser data döndü | YAZ | Screenshot persist etmez |
-| Yeni faza başlıyorum | OKU | Context tazelensin |
-| Hata oluştu | OKU | Güncel state lazım |
-| Session'a devam | HEPSİNİ OKU | State recovery |
-
-### 5-Soru Context Testi
-
-Bu soruları cevaplayabiliyorsan context yönetimi sağlam:
-
-| Soru | Kaynak |
-|------|--------|
-| Neredeyim? | task_plan.md (aktif faz) |
-| Nereye gidiyorum? | task_plan.md (kalan fazlar) |
-| Hedef ne? | task_plan.md (goal statement) |
-| Ne öğrendim? | findings.md |
-| Ne yaptım? | progress.md |
-
-### Superpowers Entegrasyonu
-
-| Superpowers Skill | Planning Files İlişkisi |
-|-------------------|-------------------------|
-| `writing-plans` | task_plan.md otomatik oluşturur |
-| `executing-plans` | task_plan.md'yi checkpoint'lerle takip eder |
-| `systematic-debugging` | findings.md'ye root cause analizi yazar |
-| `verification-before-completion` | progress.md'yi kontrol eder |
-
-> **NOT:** Superpowers skill'leri planning-with-files ile uyumlu çalışır. Manuel dosya oluşturma veya superpowers otomasyonu - ikisi de geçerli.
-
----
-
-## Superpowers (Otomatik Aktif)
-
-> **NOT:** Bu plugin 16 skill içerir ve **otomatik tetiklenir**. Manuel invoke gerekmez.
-
-| Durum | Tetiklenen Skill | Ne Yapar |
-|-------|------------------|----------|
+| Tetikleyici | Skill | Ne Yapar |
+|-------------|-------|----------|
 | Feature başlangıcı | `brainstorming` | Socratic design discovery |
 | Bug fix | `systematic-debugging` | 4-fazlı root cause analysis |
 | Test yazımı | `test-driven-development` | RED-GREEN-REFACTOR döngüsü |
@@ -246,97 +180,109 @@ Bu soruları cevaplayabiliyorsan context yönetimi sağlam:
 | PR öncesi | `requesting-code-review` | Pre-review checklist |
 | PR feedback | `receiving-code-review` | Feedback response workflow |
 | Parallel work | `using-git-worktrees` | İzole branch'ler |
+| Subagent gerek | `dispatching-parallel-agents` | Concurrent workflows |
+| Skill yazma | `writing-skills` | Yeni skill oluşturma |
 
-**Diğer Superpowers Skills:**
-- `dispatching-parallel-agents` - Concurrent subagent workflows
-- `subagent-driven-development` - Two-stage review (spec → code quality)
-- `finishing-a-development-branch` - Merge/PR/keep/discard decisions
-- `writing-skills` - Yeni skill oluşturma
+### Superclaude Agents (superclaude:*)
 
-**Kural:** Bu skill'ler context'e göre otomatik aktive olur. Sadece `%1 ihtimal` kuralı geçerli.
+| Agent | Kullanım Alanı |
+|-------|----------------|
+| `superclaude:backend-architect` | Backend sistem tasarımı |
+| `superclaude:frontend-architect` | UI/UX, erişilebilirlik |
+| `superclaude:system-architect` | Scalable mimari tasarım |
+| `superclaude:devops-architect` | CI/CD, infrastructure |
+| `superclaude:security-engineer` | Güvenlik, compliance |
+| `superclaude:performance-engineer` | Performans optimizasyonu |
+| `superclaude:quality-engineer` | Test stratejileri |
+| `superclaude:refactoring-expert` | Kod kalitesi, tech debt |
+| `superclaude:python-expert` | Python best practices |
+| `superclaude:technical-writer` | Teknik dokümantasyon |
+| `superclaude:learning-guide` | Öğretim, açıklama |
+| `superclaude:requirements-analyst` | Gereksinim analizi |
+| `superclaude:root-cause-analyst` | Problem analizi |
+| `superclaude:deep-research-agent` | Araştırma |
+| `superclaude:socratic-mentor` | Eğitim, Socratic method |
+| `superclaude:business-panel-experts` | İş stratejisi paneli |
+| `superclaude:self-review` | Post-implementation review |
+| `superclaude:pm-agent` | Proje yönetimi |
+| `superclaude:repo-index` | Codebase indexleme |
+
+### Security Scanning (security-scanning:*)
+
+| Skill | Kullanım |
+|-------|----------|
+| `security-scanning:security-sast` | Static code analysis |
+| `security-scanning:attack-tree-construction` | Threat path mapping |
+| `security-scanning:sast-configuration` | SAST tool setup |
+| `security-scanning:security-requirement-extraction` | Security requirements |
+| `security-scanning:stride-analysis-patterns` | STRIDE methodology |
+| `security-scanning:threat-mitigation-mapping` | Threat → Control mapping |
+
+### Backend Development (backend-development:*)
+
+| Skill | Kullanım |
+|-------|----------|
+| `backend-development:api-design-principles` | REST/GraphQL API design |
+| `backend-development:architecture-patterns` | Clean/Hexagonal/DDD |
+| `backend-development:microservices-patterns` | Microservices design |
+| `backend-development:cqrs-implementation` | CQRS pattern |
+| `backend-development:event-store-design` | Event sourcing |
+| `backend-development:projection-patterns` | Read model projections |
+| `backend-development:saga-orchestration` | Distributed transactions |
+| `backend-development:temporal-python-testing` | Temporal workflow testing |
+| `backend-development:workflow-orchestration-patterns` | Workflow design |
+
+### Code Review & Quality
+
+| Skill | Kullanım |
+|-------|----------|
+| `code-review:code-review` | PR code review |
+| `superpowers:code-reviewer` | Code review agent |
+| `codebase-cleanup:code-reviewer` | Code quality review |
+| `codebase-cleanup:test-automator` | Test automation |
+| `code-refactoring:code-reviewer` | Refactoring review |
+| `code-refactoring:legacy-modernizer` | Legacy code update |
+
+### JVM Languages
+
+| Skill | Kullanım |
+|-------|----------|
+| `jvm-languages:java-pro` | Java 21+, Spring Boot 3.x |
+| `jvm-languages:scala-pro` | Scala, Akka, ZIO |
+| `jvm-languages:csharp-pro` | C#, .NET |
+
+### Planning & Workflow
+
+| Skill | Kullanım |
+|-------|----------|
+| `planning-with-files:planning-with-files` | Manus-style file planning |
+| `superpowers:writing-plans` | Plan oluşturma |
+| `superpowers:executing-plans` | Plan execution |
 
 ---
 
-## Semantic MCP Seçim Kılavuzu
+## 🔄 INTENT → TOOL KARAR MANTIĞI
 
-> **Kural:** Prompt'un ne söylediğine değil, **ne yapmak istediğine** bak.
-
-| Intent (Kullanıcı Ne İstiyor) | Örnek Promptlar | MCP/Tool | İlk Aksiyon |
-|-------------------------------|-----------------|----------|-------------|
-| **UI/Sayfa/Tarayıcı debug** | "Sayfada hata var", "Buton çalışmıyor", "Network hatası" | chrome-devtools | `take_snapshot` |
-| **Veritabanı sorgu/kontrol** | "Bu kayıt var mı?", "Tabloda kaç satır?", "Şema nasıl?" | dbhub-* | `search_objects` |
-| **Harici library/docs** | "Bu library nasıl kullanılır?", "API referansı" | git-mcp | docs fetch |
-| **Spesifik sembol/fonksiyon** | "Bu fonksiyon ne yapıyor?", "Referansları bul" | serena | `find_symbol` |
-| **Tüm codebase analizi** | "Proje yapısı nasıl?", "Token dağılımı", "Genel mimari" | repomix | `--token-count-tree` |
-| **Büyük refactoring (10+ dosya)** | "Tüm service'leri refactor et", "Pattern değiştir" | repomix | `--compress --include` |
-| **Harici repo inceleme** | "Bu repo nasıl çalışıyor?", "Şu projeyi analiz et" | repomix | `--remote user/repo` |
-| **Geçmiş context** | "Daha önce ne yaptık?", "Son session'da ne vardı?" | serena + claude-mem | `list_memories` |
-| **Multi-agent orkestrasyon** | "Paralel çalıştır", "Agent spawn" | claude-flow | `agent spawn` |
-
-### MCP Karar Ağacı
-
-```
-Prompt geldi
-├─ UI/Sayfa/Tarayıcı → chrome-devtools
-│   └─ take_snapshot → list_console_messages → list_network_requests
-├─ Veritabanı/Veri → dbhub (dev/stage/test)
-│   └─ search_objects → execute_sql
-├─ Harici library docs → git-mcp
-│   └─ fetch_generic_documentation
-├─ Kod okuma/yazma
-│   ├─ Spesifik sembol/fonksiyon → serena
-│   │   └─ find_symbol → replace_symbol_body
-│   └─ Geniş kapsamlı analiz → repomix (aşağıya bak)
-├─ Harici repo analizi → repomix --remote
-└─ Geçmiş context → serena memories + claude-mem
-```
-
-### Serena vs Repomix Karar Mantığı
-
-```
-Kod analizi gerekiyor
-├─ Tek sembol/fonksiyon arama? → serena find_symbol
-├─ Referans bulma? → serena find_referencing_symbols
-├─ Tek dosya okuma? → serena get_symbols_overview
-├─ 10+ dosya etkileyen değişiklik? → repomix --compress
-├─ Tüm proje yapısı/token analizi? → repomix --token-count-tree
-├─ Harici GitHub repo? → repomix --remote user/repo
-└─ AI'a tam codebase besleme? → repomix --compress --style xml
-```
-
-**Kural:** Spesifik → serena, Geniş kapsamlı → repomix
-
-### Intent Öncelikli Yaklaşım - Somut Örnekler
-
-> **ÖNEMLİ:** Aynı kelimeler, farklı intent'lere göre farklı tool'ları tetikler.
-
-#### Aynı Kelime, Farklı Intent
+### Aynı Kelime, Farklı Intent
 
 | Prompt | Kelime | Gerçek Intent | Doğru Tool |
 |--------|--------|---------------|------------|
-| "Sayfada hata var" | hata | UI/Browser debug | chrome-devtools |
-| "Bu metotta hata var" | hata | Kod analizi | serena find_symbol |
-| "Hata mesajlarını standartlaştır" | hata | Refactoring (çok dosya) | repomix → plan |
+| "Sayfada hata var" | hata | UI debug | chrome-devtools |
+| "Bu metotta hata var" | hata | Kod analizi | serena |
+| "Hata mesajlarını standartlaştır" | hata | Refactoring | plan + serena |
 | "Hata loglama nasıl çalışıyor?" | hata | Geçmiş context | serena memories |
 
 | Prompt | Kelime | Gerçek Intent | Doğru Tool |
 |--------|--------|---------------|------------|
-| "Projeyi analiz et" | analiz | Genel yapı | repomix --token-count-tree |
-| "Bu sınıfı analiz et" | analiz | Tek sembol | serena get_symbols_overview |
+| "Projeyi analiz et" | analiz | Genel yapı | repomix |
+| "Bu sınıfı analiz et" | analiz | Tek sembol | serena |
 | "Network trafiğini analiz et" | analiz | Browser debug | chrome-devtools |
-| "Tablo yapısını analiz et" | analiz | DB şema | dbhub search_objects |
+| "Tablo yapısını analiz et" | analiz | DB şema | dbhub |
 
-| Prompt | Kelime | Gerçek Intent | Doğru Tool |
-|--------|--------|---------------|------------|
-| "Nasıl çalışıyor?" (genel) | nasıl | Mimari anlama | repomix |
-| "Bu fonksiyon nasıl çalışıyor?" | nasıl | Tek sembol | serena find_symbol |
-| "Login nasıl çalışıyor?" (UI) | nasıl | Flow debug | chrome-devtools |
-| "Mapper nasıl çalışıyor?" | nasıl | Library docs | git-mcp |
-
-#### Intent Belirleme Soruları
+### Intent Belirleme Soruları
 
 ```
-1. KAPSAM: Tek dosya/sembol mü, yoksa proje geneli mi?
+1. KAPSAM: Tek dosya/sembol mü, proje geneli mi?
    └─ Tek → serena | Geniş → repomix
 
 2. DOMAIN: Kod mu, UI mu, DB mi, harici library mi?
@@ -349,7 +295,7 @@ Kod analizi gerekiyor
    └─ Geçmiş → serena memories + claude-mem | Şimdi → diğer tool'lar
 ```
 
-#### Anti-Pattern: Kelime Eşleştirmesi
+### Anti-Pattern: Kelime Eşleştirmesi
 
 ```
 ❌ YANLIŞ (Kelime bazlı)
@@ -357,13 +303,13 @@ Kod analizi gerekiyor
 
 ✅ DOĞRU (Intent bazlı)
 "Sayfada hata var" → UI sorunu → chrome-devtools
-"Kodda hata var" → Kod analizi → serena
+"Kodda hata var" → Kod analizi → serena → /sc:troubleshoot
 "Hata yönetimini değiştir" → Refactoring → plan + serena
 ```
 
 ---
 
-## MCP Kullanım Rehberi
+## 📁 MCP KULLANIM REHBERİ
 
 ### serena (Ana Araç)
 | İşlem | Tool |
@@ -373,22 +319,11 @@ Kod analizi gerekiyor
 | Refactoring | `rename_symbol`, `replace_symbol_body` |
 | Kayıt | `write_memory` (milestone sonrası) |
 
-### dbhub (Database - Gerektiğinde Ekle)
+### dbhub-* (Database)
 | İşlem | Tool |
 |-------|------|
 | Şema keşfi | `search_objects` (table, column) |
 | Sorgu | `execute_sql` |
-
-**Kurulum (proje bazlı):**
-```bash
-# DSN'i application.yml veya .env'den al
-claude mcp add dbhub-dev -- npx -y @bytebase/dbhub --dsn "postgresql://..."
-```
-
-**Ortam seçimi (kurulduysa):**
-- `dbhub-dev` → Geliştirme
-- `dbhub-stage` → Staging/Test
-- `dbhub-test` → Birim test DB
 
 ### chrome-devtools (Frontend Debug)
 | İşlem | Tool |
@@ -397,8 +332,6 @@ claude mcp add dbhub-dev -- npx -y @bytebase/dbhub --dsn "postgresql://..."
 | Interaction | `click`, `fill`, `navigate_page` |
 | Debug | `list_console_messages`, `list_network_requests` |
 
-**Ne zaman:** UI hataları, network sorunları, DOM analizi
-
 ### git-mcp (GitHub Repo Erişimi)
 | İşlem | Tool |
 |-------|------|
@@ -406,78 +339,59 @@ claude mcp add dbhub-dev -- npx -y @bytebase/dbhub --dsn "postgresql://..."
 | Kod arama | `search_generic_code` |
 | URL içerik | `fetch_generic_url_content` |
 
-**Ne zaman:**
-- GitHub repo dokümantasyonu (README, docs/)
-- Library API referansları
-- **Repo içi kod arama** (herhangi bir public repo)
-- Harici proje yapısı anlama
-
 ### repomix (Codebase Paketleme)
 | İşlem | Komut |
 |-------|-------|
-| Token dağılımı görme | `repomix --token-count-tree` |
-| Sıkıştırılmış analiz | `repomix --compress` |
-| Harici repo analizi | `repomix --remote user/repo --compress` |
-| Belirli dosyalar | `repomix --include "src/**/*.ts" --ignore "**/*.test.ts"` |
-| XML çıktı (AI için) | `repomix --compress --style xml -o analysis.xml` |
+| Token dağılımı | `repomix --token-count-tree` |
+| Sıkıştırılmış | `repomix --compress` |
+| Harici repo | `repomix --remote user/repo --compress` |
+| Filtreleme | `repomix --include "src/**" --ignore "**/*.test.*"` |
 
-**Ne zaman:**
-- Tüm proje yapısını anlama
-- 10+ dosya etkileyen refactoring planı
-- Harici GitHub repo inceleme
-- Token bütçesi optimizasyonu (~%70 azaltma)
-
-**Ne zaman KULLANMA:**
-- Tek sembol/fonksiyon arama → serena
-- Spesifik dosya okuma → serena
-- Referans bulma → serena
-
-### repomix MCP Server Modu
-```bash
-# MCP server olarak çalıştır
-repomix --mcp
-
-# Claude Code skill oluştur
-repomix --skill-generate
-```
-
-**MCP modu araçları:**
-| Tool | Kullanım |
-|------|----------|
-| `pack_codebase` | Repo paketleme |
-| `read_file_content` | Güvenli dosya okuma |
-| `search_codebase` | Kod arama |
-| `get_tree_structure` | Proje yapısı |
-
-### claude-flow (Multi-agent Orkestrasyon)
-
-> **NOT:** claude-flow harici bir orkestrasyon platformudur. 64 specialized agent,
-> 100+ MCP tool içerir. Ayrı kurulum ve konfigürasyon gerektirir.
-
+### claude-flow (Multi-agent)
 | İşlem | Tool |
 |-------|------|
 | Agent spawn | `agent spawn -t <type>` |
 | Swarm init | `swarm init --v3-mode` |
-| Memory search | `memory search -q "<query>"` |
 | Task yönetimi | `task create`, `task list`, `task status` |
-| Hooks | `hooks pre-task`, `hooks post-task` |
 
-**Ne zaman:** Paralel görevler, swarm intelligence, multi-agent workflows
-
-### claude-mem (Global Memory - Otomatik)
-> **NOT:** Hooks aracılığıyla otomatik çalışır.
-
+### claude-mem (Global Memory)
 | İşlem | Tool |
 |-------|------|
-| Observation ara | `search` |
-| Context getir | `timeline` |
-| Detay al | `get_observations` |
-
-**Ne zaman:** Önceki oturumlar, proje geçmişi, tüm projeler için global context
+| Ara | `search` |
+| Context | `timeline` |
+| Detay | `get_observations` |
 
 ---
 
-## Temel Kurallar
+## 📋 TRACKING SİSTEMİ
+
+### TodoWrite vs Planning Files
+
+| Araç | Amaç | Yaşam Süresi | Ne Zaman |
+|------|------|--------------|----------|
+| **TodoWrite** | Anlık adım takibi | Session içi | Her görev |
+| **Planning Files** | Persistent state | Session'lar arası | Kompleks görevler |
+
+### Karmaşıklık Matrisi
+
+| Karmaşıklık | TodoWrite | Planning Files | serena memory |
+|-------------|-----------|----------------|---------------|
+| Basit (1-2 adım) | ✓ | - | - |
+| Orta (3-5 adım) | ✓ | Opsiyonel | Milestone sonunda |
+| Kompleks (6+ adım) | ✓ | **Zorunlu** | Her milestone |
+| Multi-session | ✓ | **Zorunlu** | Her session başı/sonu |
+
+### Planning Files (Zorunlu 3 Dosya)
+
+| Dosya | Amaç | Ne Zaman Güncelle |
+|-------|------|-------------------|
+| `task_plan.md` | Fazlar, ilerleme, kararlar | Her faz sonrası |
+| `findings.md` | Araştırma, keşifler, notlar | Her keşif anında |
+| `progress.md` | Session logu, test sonuçları | Sürekli |
+
+---
+
+## ⚠️ TEMEL KURALLAR
 
 | Kural | Detay |
 |-------|-------|
@@ -486,7 +400,7 @@ repomix --skill-generate
 | 3-Strike | 3 denemede çözemediysen → Kullanıcıya sor |
 | Major karar | Birden fazla yaklaşım varsa → Kullanıcıya sor |
 | Döngü önleme | 3 analyze/araştırma sonrası → Kullanıcıya sor |
-| **~/.claude repo** | Her değişiklik sonrası otomatik commit & push (CLAUDE.md, docs/, settings.json, agents/, skills/, commands/, helpers/) |
+| ~/.claude repo | Her değişiklik sonrası commit & push |
 
 ### Güvenlik - ASLA Commit Etme
 ```
@@ -498,7 +412,27 @@ application-prod.yml, *.pem, *.key
 
 ---
 
-## Hata Durumları
+## 🔧 CLI ARAÇLARI
+
+```bash
+# Maven
+./mvnw compile|test|package
+
+# Git
+git status|diff|log
+
+# Repomix
+repomix --token-count-tree     # Token dağılımı
+repomix --compress             # ~%70 azaltma
+repomix --remote user/repo     # Harici repo
+
+# MCP
+claude mcp list|add|remove
+```
+
+---
+
+## ❌ HATA DURUMLARI
 
 | Hata | Aksiyon |
 |------|---------|
@@ -509,37 +443,17 @@ application-prod.yml, *.pem, *.key
 
 ---
 
-## CLI Araçları
+## 📚 REFERANSLAR
 
-```bash
-# Maven
-./mvnw compile|test|package
-
-# Git
-git status|diff|log
-
-# Repomix
-repomix --token-count-tree              # Token dağılımı görselleştir
-repomix --compress                       # ~%70 token azaltma
-repomix --compress --style xml           # AI-friendly XML çıktı
-repomix --remote user/repo --compress    # Harici repo analizi
-repomix --include "src/**" --ignore "**/*.test.*"  # Filtreleme
-
-# MCP
-claude mcp list|add|remove
-```
-
----
-
-## Dil & Format
-- Türkçe iletişim tercih edilir
-- Kod ve teknik terimler İngilizce kalabilir
-- Tablo formatı kullan (okunabilirlik)
-
----
-
-## Referanslar
 - `~/.claude/docs/mcp-reference.md` - MCP detayları
 - `~/.claude/docs/workflows.md` - Görev akışları
 - `~/.claude/docs/troubleshooting.md` - Hata kurtarma
 - `~/.claude/docs/maintenance.md` - Bakım ve güncelleme
+
+---
+
+## 🌐 DİL & FORMAT
+
+- Türkçe iletişim tercih edilir
+- Kod ve teknik terimler İngilizce kalabilir
+- Tablo formatı kullan (okunabilirlik)
