@@ -46,9 +46,9 @@
 
 ---
 
-## Superpowers (Otomatik Tetiklenir)
+## Superpowers (Claude Invoke Etmeli)
 
-> **NOT:** Bu skill'ler context'e gore **otomatik aktive** olur. Manuel invoke gerekmez.
+> **NOT:** Bu skill'ler "otomatik" DEĞİL - Claude tetikleyici durumu algıladığında Skill tool ile INVOKE ETMELİ. "Otomatik" ifadesi sadece "manuel kullanıcı talebi olmadan" anlamındadır.
 
 | Tetikleyici | Skill | Ne Yapar |
 |-------------|-------|----------|
