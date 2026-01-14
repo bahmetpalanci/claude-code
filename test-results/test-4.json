@@ -1,7 +1,7 @@
 {
   "test_id": 4,
-  "prompt": "Projeyi analiz et, mimariyi anlamak istiyorum",
-  "timestamp": "2026-01-14T11:18:19Z",
+  "prompt": "Enterprise App: Analyze project architecture, understand microservices structure",
+  "timestamp": "2026-01-14T11:28:36Z",
   "status": "pending",
   "expected_analysis": {
     "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"

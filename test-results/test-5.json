@@ -1,7 +1,7 @@
 {
   "test_id": 5,
-  "prompt": "User authentication ekle",
-  "timestamp": "2026-01-14T11:18:19Z",
+  "prompt": "Healthcare Portal: Add two-factor authentication for patient records",
+  "timestamp": "2026-01-14T11:28:36Z",
   "status": "pending",
   "expected_analysis": {
     "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"

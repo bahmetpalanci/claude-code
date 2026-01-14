@@ -1,7 +1,7 @@
 {
   "test_id": 8,
-  "prompt": "Kod kalitesini iyileştir, refactor yap",
-  "timestamp": "2026-01-14T11:18:19Z",
+  "prompt": "Legacy System: Refactor and improve code quality in payment module",
+  "timestamp": "2026-01-14T11:28:36Z",
   "status": "pending",
   "expected_analysis": {
     "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"

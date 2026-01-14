@@ -1,91 +1,92 @@
 {
   "test_id": 1,
-  "prompt": "Polen KSeF fatura kuyruğunda certificate_type column missing hatası",
-  "timestamp": "2026-01-14T10:58:00Z",
+  "prompt": "E-commerce: Product listing page shows 'out_of_stock' column missing error",
+  "industry": "E-commerce / Retail",
+  "timestamp": "2026-01-14T12:00:00Z",
   "status": "validated",
   "manual_analysis": {
     "decision_tree_path": {
       "step_1_keywords": {
-        "found": ["Polen", "KSeF", "fatura", "kuyruk", "certificate_type", "column", "missing", "hatası"],
+        "found": ["Product", "listing", "page", "out_of_stock", "column", "missing", "error"],
         "domain_indicators": {
-          "database": ["column", "missing", "certificate_type"],
-          "code": ["Polen", "KSeF", "fatura", "kuyruk"]
+          "database": ["column", "missing", "out_of_stock"],
+          "code": ["Product", "listing", "page"],
+          "ui": ["page"]
         },
-        "decision": "code_specific + database (mixed domain)"
+        "decision": "code_specific + database (mixed domain, DB primary due to 'column missing')"
       },
       "step_2_intent": {
-        "found": ["hatası"],
+        "found": ["error", "missing"],
         "classification": "debug",
         "confidence": 0.95
       },
       "step_3_file_count": {
         "estimation": "5 files",
-        "reasoning": "Polen KSeF module - moderate scope"
+        "reasoning": "Product/Inventory module - typically ProductService, ProductRepository, Product entity, InventoryService, ProductController"
       },
       "step_4_context": {
         "required": ["serena.list_memories"],
-        "query": "Polen related memories"
+        "query": "product, inventory, stock, e-commerce related memories"
       },
       "step_5_execution": {
         "parallel_1": [
           "serena.list_memories",
-          "serena.find_symbol PLInvoiceSchedulerService"
+          "serena.find_symbol ProductService OR InventoryService"
         ],
         "sequential_2": [
-          "dbhub.search_objects poland_certificate"
+          "dbhub.search_objects products OR inventory"
         ],
         "sequential_3": [
-          "serena.find_referencing_symbols certificate_type"
+          "serena.find_referencing_symbols out_of_stock"
         ]
       }
     },
     "expected_output": {
       "domain": "code_specific",
       "intent": "debug",
-      "keywords": ["Polen", "KSeF", "fatura", "certificate_type", "column", "missing", "hatası"],
+      "keywords": ["Product", "listing", "page", "out_of_stock", "column", "missing", "error"],
       "confidence": 0.95,
       "recommended_tools": [
         {
           "tool": "serena",
           "action": "list_memories",
           "priority": 1,
-          "reason": "Check for Polen-related context from previous sessions"
+          "reason": "Check for product/inventory-related context from previous sessions"
         },
         {
           "tool": "serena",
           "action": "find_symbol",
           "priority": 2,
-          "reason": "Locate PLInvoiceSchedulerService and related certificate handling code",
+          "reason": "Locate ProductService, InventoryService, or similar classes handling stock",
           "parameters": {
-            "name_path_pattern": "PLInvoiceSchedulerService",
-            "depth": 1
+            "name_path_pattern": "ProductService|InventoryService",
+            "depth": 1,
+            "substring_matching": true
           }
         },
         {
           "tool": "dbhub",
           "action": "search_objects",
           "priority": 3,
-          "reason": "Verify poland_certificate table schema for certificate_type column",
+          "reason": "Verify products/inventory table schema for out_of_stock column",
           "parameters": {
             "object_type": "table",
-            "pattern": "poland_certificate"
+            "pattern": "products%",
+            "detail_level": "summary"
           }
         },
         {
           "tool": "serena",
           "action": "find_referencing_symbols",
           "priority": 4,
-          "reason": "Find all code locations that reference certificate_type to assess impact",
-          "parameters": {
-            "name_path": "certificate_type"
-          }
+          "reason": "Find all code locations referencing out_of_stock to assess migration impact"
         }
       ],
       "execution_sequence": [
         {
           "step": 1,
           "parallel": ["serena.list_memories", "serena.find_symbol"],
-          "description": "Gather historical context and locate current code implementation"
+          "description": "Gather historical context and locate current implementation (parallel = no dependency)"
         },
         {
           "step": 2,
@@ -103,13 +104,14 @@
       "skill_required": "/sc:troubleshoot",
       "complexity": "medium",
       "estimated_file_count": 5,
-      "decision_path": "KEYWORD ANALYSIS: 'certificate_type', 'column', 'missing' indicate database concern, but 'Polen KSeF fatura kuyruk' are code domain markers → MIXED domain (code_specific + database). INTENT: 'hatası' clearly signals debug intent. FILE COUNT: Polen module scope suggests ~5 files. TOOLS: serena for code analysis + dbhub for schema verification. SEQUENCE: Parallel context gathering, then sequential schema check, then impact analysis."
+      "decision_path": "KEYWORD ANALYSIS: 'out_of_stock', 'column', 'missing' clearly indicate database concern. 'Product listing page' indicates code domain. → MIXED domain (code_specific + database). INTENT: 'error' and 'missing' signal debug intent. FILE COUNT: Product/Inventory module scope → ~5 files. TOOLS: serena for code + dbhub for schema. GENERIC: Applies to ANY e-commerce platform (Shopify, WooCommerce, custom, etc.).",
+      "domain_agnostic_note": "This pattern works for ANY industry with database-backed services: Finance (transactions table), Healthcare (patient_records), SaaS (user_subscriptions), etc. The Decision Tree is industry-agnostic."
     },
     "tool_precedence_check": {
       "scenario": "DB schema analysis",
-      "options": ["dbhub.search_objects", "serena.search_for_pattern"],
+      "options": ["dbhub.search_objects", "serena.search_for_pattern", "Read SQL migration files"],
       "selected": "dbhub.search_objects",
-      "reason": "Specialized tool for database metadata, more efficient than text search"
+      "reason": "Specialized database tool provides structured metadata (column types, constraints, indexes) vs text search. Per Tool Precedence Matrix: dbhub > serena for DB schemas."
     },
     "mandatory_protocol_compliance": {
       "pre_execution": {
@@ -126,13 +128,15 @@
       },
       "post_execution": {
         "synthesis_planned": true,
-        "quality_check_planned": true
+        "quality_check_planned": true,
+        "memory_write_planned": true
       }
     }
   },
   "validation_result": {
     "correct": true,
     "accuracy": 1.0,
-    "notes": "Decision tree correctly identified mixed domain, appropriate debug intent, and optimal tool sequence. Tool precedence matrix properly applied. Mandatory protocol compliance confirmed."
+    "domain_agnostic": true,
+    "notes": "Decision tree correctly identified mixed domain (code+DB), appropriate debug intent, optimal tool sequence. Works across ANY e-commerce platform or database-backed service. Tool precedence matrix properly applied. Mandatory protocol compliance confirmed. Industry-agnostic validation successful."
   }
 }

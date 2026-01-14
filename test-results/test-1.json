@@ -1,7 +1,7 @@
 {
   "test_id": 1,
-  "prompt": "Polen KSeF fatura kuyruğunda certificate_type column missing hatası",
-  "timestamp": "2026-01-14T11:18:19Z",
+  "prompt": "E-commerce: Product listing page shows 'out_of_stock' column missing error",
+  "timestamp": "2026-01-14T11:28:36Z",
   "status": "pending",
   "expected_analysis": {
     "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"

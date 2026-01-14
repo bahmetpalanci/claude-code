@@ -87,10 +87,11 @@ claude-flow agent_spawn \
 
 ---
 
-## 📊 Test Senaryoları
+## 📊 Test Senaryoları (Domain-Agnostic)
 
-### Test 1: Database + Code Debug
-**Prompt**: "Polen KSeF fatura kuyruğunda certificate_type column missing hatası"
+### Test 1: E-commerce - Database + Code Debug
+**Prompt**: "Product listing page shows 'out_of_stock' column missing error"
+**Industry**: E-commerce / Retail
 
 **Beklenen Output**:
 ```json
@@ -107,8 +108,9 @@ claude-flow agent_spawn \
 }
 ```
 
-### Test 2: UI Debug
-**Prompt**: "Login sayfasında hata var, console'da error görünüyor"
+### Test 2: SaaS - UI Debug
+**Prompt**: "Login page console showing authentication token errors"
+**Industry**: SaaS / Web Application
 
 **Beklenen Output**:
 ```json
@@ -124,8 +126,9 @@ claude-flow agent_spawn \
 }
 ```
 
-### Test 3: Feature Implementation
-**Prompt**: "User authentication ekle"
+### Test 3: Healthcare - Feature Implementation
+**Prompt**: "Add two-factor authentication for patient records"
+**Industry**: Healthcare / HIPAA-compliant Systems
 
 **Beklenen Output**:
 ```json
@@ -140,8 +143,9 @@ claude-flow agent_spawn \
 }
 ```
 
-### Test 4: External Library Research
-**Prompt**: "Spring Security nasıl kullanılır?"
+### Test 4: Open Source - External Library Research
+**Prompt**: "How to use OAuth2 authentication framework?"
+**Industry**: Generic / Open Source Development
 
 **Beklenen Output**:
 ```json

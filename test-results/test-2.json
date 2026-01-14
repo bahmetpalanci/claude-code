@@ -1,7 +1,7 @@
 {
   "test_id": 2,
-  "prompt": "Login sayfasında hata var, console'da error görünüyor",
-  "timestamp": "2026-01-14T11:18:19Z",
+  "prompt": "SaaS Dashboard: Login page console showing authentication token errors",
+  "timestamp": "2026-01-14T11:28:36Z",
   "status": "pending",
   "expected_analysis": {
     "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"

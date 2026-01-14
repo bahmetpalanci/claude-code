@@ -7,8 +7,11 @@ version: 1.0.0
 type: general-purpose
 
 description: |
+  Domain-agnostic intent classification engine for any project/industry.
   Analyzes user prompts and returns deterministic intent classification
   based on CLAUDE.md Decision Tree rules.
+
+  Works across: E-commerce, Finance, Healthcare, SaaS, Enterprise, Open Source, etc.
 
 task: |
   You are an intent classification engine. Your job is to analyze user prompts
@@ -85,66 +88,66 @@ task: |
   - test intent → /sc:test-driven-development
   - refactor intent → /sc:improve
 
-  ## Example
+  ## Example (Domain-Agnostic E-commerce Scenario)
 
-  Input: "Polen KSeF fatura kuyruğunda certificate_type column missing hatası"
+  Input: "Product listing page shows 'out_of_stock' column missing error"
 
   Output:
   ```json
   {
     "domain": "code_specific",
     "intent": "debug",
-    "keywords": ["Polen", "KSeF", "fatura", "certificate_type", "column", "missing", "hatası"],
+    "keywords": ["Product", "listing", "page", "out_of_stock", "column", "missing", "error"],
     "confidence": 0.95,
     "recommended_tools": [
       {
         "tool": "serena",
         "action": "list_memories",
         "priority": 1,
-        "reason": "Check for Polen-related context"
+        "reason": "Check for product/inventory-related context from previous sessions"
       },
       {
         "tool": "serena",
         "action": "find_symbol",
         "priority": 2,
-        "reason": "Find PLInvoiceSchedulerService and related classes"
+        "reason": "Find ProductService or InventoryService classes"
       },
       {
         "tool": "dbhub",
         "action": "search_objects",
         "priority": 3,
-        "reason": "Check poland_certificate table schema"
+        "reason": "Check products or inventory table schema for out_of_stock column"
       },
       {
         "tool": "serena",
         "action": "find_referencing_symbols",
         "priority": 4,
-        "reason": "Find all certificate_type usages"
+        "reason": "Find all code references to out_of_stock field"
       }
     ],
     "execution_sequence": [
       {
         "step": 1,
         "parallel": ["serena.list_memories", "serena.find_symbol"],
-        "description": "Gather context and locate relevant code"
+        "description": "Gather historical context and locate current implementation"
       },
       {
         "step": 2,
         "sequential": ["dbhub.search_objects"],
         "depends_on": [1],
-        "description": "Verify database schema"
+        "description": "Verify database schema for missing column"
       },
       {
         "step": 3,
         "sequential": ["serena.find_referencing_symbols"],
         "depends_on": [2],
-        "description": "Map all usages of missing column"
+        "description": "Map all code usages to assess impact"
       }
     ],
     "skill_required": "/sc:troubleshoot",
     "complexity": "medium",
     "estimated_file_count": 5,
-    "decision_path": "KEYWORD: 'certificate_type', 'column' → database elements BUT 'Polen KSeF' → code domain → MIXED: code_specific + database. INTENT: 'hatası' → debug. FILE_COUNT: Polen module → ~5 files. TOOLS: serena (code) + dbhub (schema)."
+    "decision_path": "KEYWORD: 'column', 'missing' → database, 'Product listing page' → code domain → MIXED: code_specific + database. INTENT: 'error' → debug. FILE_COUNT: Product module → ~5 files. TOOLS: serena (code) + dbhub (schema). GENERIC: Works for any e-commerce platform."
   }
   ```
 

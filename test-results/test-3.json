@@ -1,7 +1,7 @@
 {
   "test_id": 3,
-  "prompt": "CertificateService sınıfını analiz et",
-  "timestamp": "2026-01-14T11:18:19Z",
+  "prompt": "Banking API: Analyze the TransactionValidator class implementation",
+  "timestamp": "2026-01-14T11:28:36Z",
   "status": "pending",
   "expected_analysis": {
     "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"

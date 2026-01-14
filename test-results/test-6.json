@@ -1,7 +1,7 @@
 {
   "test_id": 6,
-  "prompt": "Spring Security nasıl kullanılır?",
-  "timestamp": "2026-01-14T11:18:19Z",
+  "prompt": "Open Source Library: How to use OAuth2 authentication framework?",
+  "timestamp": "2026-01-14T11:28:36Z",
   "status": "pending",
   "expected_analysis": {
     "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"

@@ -14,16 +14,16 @@ echo "🧪 Intent Classifier Agent Test Suite"
 echo "======================================"
 echo ""
 
-# Test cases
+# Test cases - Generic scenarios across different domains
 declare -a TEST_PROMPTS=(
-    "Polen KSeF fatura kuyruğunda certificate_type column missing hatası"
-    "Login sayfasında hata var, console'da error görünüyor"
-    "CertificateService sınıfını analiz et"
-    "Projeyi analiz et, mimariyi anlamak istiyorum"
-    "User authentication ekle"
-    "Spring Security nasıl kullanılır?"
-    "Test coverage artır"
-    "Kod kalitesini iyileştir, refactor yap"
+    "E-commerce: Product listing page shows 'out_of_stock' column missing error"
+    "SaaS Dashboard: Login page console showing authentication token errors"
+    "Banking API: Analyze the TransactionValidator class implementation"
+    "Enterprise App: Analyze project architecture, understand microservices structure"
+    "Healthcare Portal: Add two-factor authentication for patient records"
+    "Open Source Library: How to use OAuth2 authentication framework?"
+    "API Testing: Increase test coverage for REST endpoints"
+    "Legacy System: Refactor and improve code quality in payment module"
 )
 
 # Test each prompt

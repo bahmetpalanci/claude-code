@@ -118,39 +118,39 @@ ADIM 5: EXECUTION SEQUENCE
    └─ EVET → Sırayla çağır (örn: memory → find_symbol → debug)
 ```
 
-**Örnek Walkthrough**:
+**Örnek Walkthrough (Generic)**:
 
 ```
-Prompt: "Polen KSeF fatura kuyruğunda certificate_type column missing hatası"
+Prompt: "User service API failing: database column 'email_verified' missing in users table"
 
 ADIM 1: KEYWORD
-  ✓ "column", "tablo" yok AMA "certificate_type" → DB olabilir
-  ✓ "KSeF", "fatura" → Code domain
-  → Domain: Code + Database
+  ✓ "column", "database", "table" → Database domain
+  ✓ "User service", "API" → Code domain
+  → Domain: Code + Database (mixed)
 
 ADIM 2: INTENT
-  ✓ "hatası" → Debug intent
+  ✓ "failing" → Debug intent
   → Code domain debug: serena + /sc:troubleshoot
   → DB check: dbhub search_objects
 
 ADIM 3: DOSYA SAYISI
-  → Polen KSeF → Muhtemelen 3-5 dosya
+  → "User service" → Typically 3-5 files (service, repository, entity)
   → serena find_symbol + find_referencing_symbols
 
 ADIM 4: CONTEXT
   → serena list_memories
-  → "Polen" memory var mı kontrol et
+  → Check for related "user", "database", "migration" memories
 
 ADIM 5: SEQUENCE
   1. serena list_memories (parallel)
-  2. serena find_symbol "PLInvoiceSchedulerService" (parallel)
+  2. serena find_symbol "UserService" (parallel)
   ↓ (wait for results)
-  3. dbhub search_objects "poland_certificate"
-  4. serena find_referencing_symbols "certificate_type"
+  3. dbhub search_objects "users" (table schema)
+  4. serena find_referencing_symbols "email_verified"
   ↓
-  5. /sc:troubleshoot (if needed)
+  5. /sc:troubleshoot (if root cause unclear)
 
-SONUÇ: 5 adım, deterministik, tekrarlanabilir
+SONUÇ: 5 adım, deterministik, tekrarlanabilir, domain-agnostic
 ```
 
 ---
@@ -172,21 +172,21 @@ SONUÇ: 5 adım, deterministik, tekrarlanabilir
 | Paralel işler | Sequential agent calls | claude-flow | **claude-flow** | True parallelism |
 | Intent detection | Manual LLM decision | claude-flow agent | **claude-flow** | Deterministic, cacheable |
 
-**Çakışma Durumu Örneği**:
+**Çakışma Durumu Örneği (Generic)**:
 
 ```
-Prompt: "CertificateService sınıfını analiz et"
+Prompt: "Analyze the AuthenticationService class"
 
 Seçenekler:
-  A) serena find_symbol "CertificateService" depth=1
-  B) repomix --include "**/CertificateService.java"
+  A) serena find_symbol "AuthenticationService" depth=1
+  B) repomix --include "**/AuthenticationService.*"
   C) Read tool ile dosyayı oku
 
 MATRIX'E BAK:
   → Tek sınıf analiz → serena
-  → Neden: Token efficient, sembolik yapı
+  → Neden: Token efficient, sembolik yapı, dil-agnostic
 
-KARAR: serena find_symbol ✓
+KARAR: serena find_symbol ✓ (works for Java, Python, TypeScript, etc.)
 ```
 
 ---
@@ -235,25 +235,26 @@ EĞER TodoWrite gerekiyordu AMA oluşturmadım
   → Hemen oluştur, retroaktif adımları ekle
 ```
 
-**Örnek Enforcement**:
+**Örnek Enforcement (Generic)**:
 
 ```
 ❌ YANLIŞ:
-User: "Polen KSeF hatası"
+User: "Payment API throwing database error"
 Assistant: [Direk serena find_symbol çağırıyor]
 
 ❓ Sorun: Memory check yok, skill yok, decision tree takip edilmedi
 
 ✅ DOĞRU:
-User: "Polen KSeF hatası"
+User: "Payment API throwing database error"
 Assistant:
-  [✓] serena list_memories
-  [✓] Decision Tree → Code debug
+  [✓] serena list_memories (payment, API, DB context)
+  [✓] Decision Tree → Code + Database debug
   [✓] /sc:troubleshoot skill invoke
-  [✓] TodoWrite oluştur
-  [✓] serena find_symbol → PLInvoiceSchedulerService
-  [✓] dbhub search_objects → poland_certificate
-  [✓] Synthesis
+  [✓] TodoWrite oluştur (5+ steps = medium complexity)
+  [✓] serena find_symbol → PaymentService
+  [✓] dbhub search_objects → payments (table schema)
+  [✓] serena find_referencing_symbols → (DB column usage)
+  [✓] Synthesis + root cause
 ```
 
 ---
