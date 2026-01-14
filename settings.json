@@ -58,6 +58,14 @@
             "command": "node /Users/bap/.claude-mem/hooks/session-start.js"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/bap/.claude/hooks/session-init.js"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
