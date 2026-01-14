@@ -102,10 +102,14 @@ ADIM 2: INTENT SINIFLANDIRMA
 ADIM 3: DOSYA SAYISI THRESHOLD (Kod analizi için)
 ├─ 1-2 dosya → serena find_symbol
 ├─ 3-10 dosya → serena find_symbol + serena find_referencing_symbols
-└─ 10+ dosya → repomix CLI --token-count-tree
+└─ 10+ dosya → repomix CLI:
+   repomix --token-count-tree --include "src/**/*.java"
+   repomix --compress --include "src/main/**" --output context.md
 
-ADIM 4: CONTEXT KONTROLÜ (HER ZAMAN YAP)
+ADIM 4: CONTEXT KONTROLÜ (Session başında yapıldıysa ATLA)
 serena list_memories
+  ├─ Session başında zaten çağrıldı mı?
+  │  └─ EVET → Bu adımı atla, ADIM 5'e geç
   ├─ İlgili memory var mı?
   │  └─ EVET → Oku, context'e ekle
   └─ HAYIR → Devam et
@@ -310,18 +314,18 @@ Assistant:
 
 ---
 
-## Superpowers (Otomatik Tetiklenir)
+## Superpowers (Claude Invoke Etmeli)
 
 | Tetikleyici | Skill | Ne Yapar |
 |-------------|-------|----------|
-| Feature başlangıcı | brainstorming | Socratic design discovery |
-| Bug fix başlangıcı | systematic-debugging | 4-fazlı root cause analysis |
-| Test yazımı | test-driven-development | RED-GREEN-REFACTOR |
-| İş bitiminde | verification-before-completion | Gerçekten çalışıyor mu? |
-| Multi-step task | writing-plans → executing-plans | Checkpoint'li execution |
-| PR öncesi | requesting-code-review | Pre-review checklist |
+| Feature başlangıcı | `Skill("brainstorming")` | Socratic design discovery |
+| Bug fix başlangıcı | `Skill("systematic-debugging")` | 4-fazlı root cause analysis |
+| Test yazımı | `Skill("test-driven-development")` | RED-GREEN-REFACTOR |
+| İş bitiminde | `Skill("verification-before-completion")` | Gerçekten çalışıyor mu? |
+| Multi-step task | `Skill("writing-plans")` | Checkpoint'li execution |
+| PR öncesi | `Skill("requesting-code-review")` | Pre-review checklist |
 
-**ÖNEMLİ:** Bu skill'ler invoke edilmeli - "otomatik" demek "Claude'un kendisi invoke etmeli" demek.
+**AÇIKLAMA:** Bu skill'ler "otomatik" değil - Claude tetikleyici durumu algıladığında Skill tool ile invoke etmeli.
 
 ---
 
@@ -353,6 +357,18 @@ BAŞLANGIÇ (Session açıldığında):
 MILESTONE (Commit, PR, Test pass, Major refactoring):
   └─ serena write_memory → Ne yapıldı, hangi dosyalar değişti
 ```
+
+---
+
+## Reference Docs (Gerektiğinde Oku)
+
+| Dosya | İçerik | Ne Zaman Oku |
+|-------|--------|--------------|
+| `~/.claude/docs/mcp-reference.md` | MCP sunucu detayları, config | MCP sorun/config gerektiğinde |
+| `~/.claude/docs/skill-reference.md` | Tüm skill listesi, intent→tool | Doğru skill'i bulamadığında |
+| `~/.claude/docs/cli-reference.md` | CLI tool kullanımı | repomix, claude CLI gerektiğinde |
+| `~/.claude/docs/workflows.md` | Workflow pattern'leri | Kompleks task planlarken |
+| `~/.claude/docs/troubleshooting.md` | Yaygın sorunlar | MCP/tool hata alınca |
 
 ---
 
