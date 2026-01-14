@@ -1,0 +1,9 @@
+{
+  "test_id": 3,
+  "prompt": "CertificateService sınıfını analiz et",
+  "timestamp": "2026-01-14T11:18:19Z",
+  "status": "pending",
+  "expected_analysis": {
+    "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"
+  }
+}

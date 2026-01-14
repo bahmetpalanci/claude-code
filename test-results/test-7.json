@@ -1,0 +1,9 @@
+{
+  "test_id": 7,
+  "prompt": "Test coverage artır",
+  "timestamp": "2026-01-14T11:18:19Z",
+  "status": "pending",
+  "expected_analysis": {
+    "note": "Manual verification needed - compare against CLAUDE.md Decision Tree"
+  }
+}

@@ -50,6 +50,214 @@
 | "Bu library nasıl kullanılır?" | nasıl | Harici docs | git-mcp fetch_generic_documentation |
 | "Bu metot nasıl çalışıyor?" | nasıl | Kod okuma | serena find_symbol |
 
+---
+
+## 🎯 DETERMINISTIK DECISION TREE (ZORUNLU)
+
+**Her prompt'ta bu ağacı TAKİP ET - atlama, tahmin etme:**
+
+```
+ADIM 1: KEYWORD ANALIZI
+├─ "sayfa", "browser", "UI", "görünüm" var mı?
+│  └─ EVET → Domain: UI → chrome-devtools
+│
+├─ "tablo", "sütun", "query", "database", "schema" var mı?
+│  └─ EVET → Domain: Database → dbhub-*
+│
+├─ "metot", "sınıf", "fonksiyon", "kod" + spesifik isim var mı?
+│  └─ EVET → Domain: Code (spesifik) → serena find_symbol
+│
+├─ "proje", "yapı", "mimari", "genel" + analiz var mı?
+│  └─ EVET → Domain: Code (geniş) → repomix CLI
+│
+├─ "library", "paket", "npm", "maven", "dependency" + dış kaynak var mı?
+│  └─ EVET → Domain: External → git-mcp
+│
+└─ Hiçbiri değil → Kullanıcıya sor: "Hangi domain? (UI/DB/Kod/Harici)"
+
+ADIM 2: INTENT SINIFLANDIRMA
+├─ "hata", "çalışmıyor", "bozuk", "exception", "error" var mı?
+│  ├─ UI domain → chrome-devtools + take_snapshot + list_console_messages
+│  ├─ DB domain → dbhub search_objects + serena find_referencing_symbols
+│  ├─ Code domain → serena find_symbol + /sc:troubleshoot
+│  └─ Unknown → serena list_memories → sonra debug
+│
+├─ "ekle", "yap", "oluştur", "implement", "geliştir" var mı?
+│  ├─ Skill: /sc:brainstorming (ÖNCELİKLE)
+│  ├─ TodoWrite ile plan
+│  └─ Sonra /sc:implement
+│
+├─ "analiz", "incele", "bak", "anla", "nasıl" var mı?
+│  ├─ Spesifik sembol → serena find_symbol
+│  ├─ Genel yapı → repomix CLI
+│  ├─ Harici → git-mcp fetch_generic_documentation
+│  └─ UI → chrome-devtools take_snapshot
+│
+├─ "refactor", "temizle", "iyileştir", "optimize" var mı?
+│  └─ /sc:improve + TodoWrite
+│
+└─ "test", "coverage", "spec", "doğrula" var mı?
+   └─ /sc:test-driven-development
+
+ADIM 3: DOSYA SAYISI THRESHOLD (Kod analizi için)
+├─ 1-2 dosya → serena find_symbol
+├─ 3-10 dosya → serena find_symbol + serena find_referencing_symbols
+└─ 10+ dosya → repomix CLI --token-count-tree
+
+ADIM 4: CONTEXT KONTROLÜ (HER ZAMAN YAP)
+serena list_memories
+  ├─ İlgili memory var mı?
+  │  └─ EVET → Oku, context'e ekle
+  └─ HAYIR → Devam et
+
+ADIM 5: EXECUTION SEQUENCE
+├─ Parallel yapılabilir mi? (bağımsız tool'lar)
+│  └─ EVET → Aynı anda çağır
+│
+└─ Sequential gerekli mi? (bağımlılık var)
+   └─ EVET → Sırayla çağır (örn: memory → find_symbol → debug)
+```
+
+**Örnek Walkthrough**:
+
+```
+Prompt: "Polen KSeF fatura kuyruğunda certificate_type column missing hatası"
+
+ADIM 1: KEYWORD
+  ✓ "column", "tablo" yok AMA "certificate_type" → DB olabilir
+  ✓ "KSeF", "fatura" → Code domain
+  → Domain: Code + Database
+
+ADIM 2: INTENT
+  ✓ "hatası" → Debug intent
+  → Code domain debug: serena + /sc:troubleshoot
+  → DB check: dbhub search_objects
+
+ADIM 3: DOSYA SAYISI
+  → Polen KSeF → Muhtemelen 3-5 dosya
+  → serena find_symbol + find_referencing_symbols
+
+ADIM 4: CONTEXT
+  → serena list_memories
+  → "Polen" memory var mı kontrol et
+
+ADIM 5: SEQUENCE
+  1. serena list_memories (parallel)
+  2. serena find_symbol "PLInvoiceSchedulerService" (parallel)
+  ↓ (wait for results)
+  3. dbhub search_objects "poland_certificate"
+  4. serena find_referencing_symbols "certificate_type"
+  ↓
+  5. /sc:troubleshoot (if needed)
+
+SONUÇ: 5 adım, deterministik, tekrarlanabilir
+```
+
+---
+
+## 🔧 TOOL PRECEDENCE MATRIX (Çakışma Çözümü)
+
+**Aynı işi birden fazla tool yapabiliyorsa, bu matrix'e bak:**
+
+| Senaryo | Tool A | Tool B | Hangisi? | Neden |
+|---------|--------|--------|----------|-------|
+| Tek metot okuma | serena find_symbol | repomix | **serena** | Token efficient, sembolik |
+| 10+ dosya analiz | serena | repomix | **repomix** | Geniş scope, hiyerarşi |
+| DB şema analiz | dbhub search_objects | serena search_for_pattern | **dbhub** | Specialized, metadata |
+| UI debug | chrome-devtools | log files | **chrome-devtools** | Real-time, interactive |
+| Harici library docs | git-mcp | Web search | **git-mcp** | Structured, API docs |
+| Context arama | serena memories | Re-read files | **serena memories** | Condensed, pre-digested |
+| Kod değişikliği | serena replace_symbol_body | Edit tool | **serena** | Symbol-aware, safe |
+| Yeni dosya | Write tool | serena insert | **Write** | serena is for existing code |
+| Paralel işler | Sequential agent calls | claude-flow | **claude-flow** | True parallelism |
+| Intent detection | Manual LLM decision | claude-flow agent | **claude-flow** | Deterministic, cacheable |
+
+**Çakışma Durumu Örneği**:
+
+```
+Prompt: "CertificateService sınıfını analiz et"
+
+Seçenekler:
+  A) serena find_symbol "CertificateService" depth=1
+  B) repomix --include "**/CertificateService.java"
+  C) Read tool ile dosyayı oku
+
+MATRIX'E BAK:
+  → Tek sınıf analiz → serena
+  → Neden: Token efficient, sembolik yapı
+
+KARAR: serena find_symbol ✓
+```
+
+---
+
+## ✅ MANDATORY EXECUTION PROTOCOL (Atlama = Hata)
+
+**Her prompt'ta bu checklist'i TAKİP ET:**
+
+```markdown
+## Pre-Execution
+[ ] 1. serena list_memories → İlgili memory var mı?
+[ ] 2. Decision Tree'yi takip et → Domain + Intent belirle
+[ ] 3. Tool Precedence Matrix'e bak → Doğru tool'u seç
+[ ] 4. Skill gerekiyor mu? → %1 ihtimal bile olsa invoke et
+[ ] 5. TodoWrite gerekiyor mu? → 2+ adım varsa oluştur
+
+## Execution
+[ ] 6. Tool sequence'ı belirle → Parallel mı, sequential mi?
+[ ] 7. İlk tool çağrısı → Sonucu bekle
+[ ] 8. Sonraki tool çağrıları → Dependency'lere göre
+[ ] 9. Ara değerlendirme → 3 tool'dan sonra yeterli mi kontrol
+
+## Post-Execution
+[ ] 10. Sonuç sentezi → Kullanıcıya net cevap
+[ ] 11. TodoWrite güncelle → Tamamlanan adımları mark et
+[ ] 12. Memory write gerekiyor mu? → Major milestone ise yaz
+[ ] 13. Quality check → "Gerçekten çözüldü mü?"
+```
+
+**Enforcement Mekanizması**:
+
+```
+EĞER 3 tool çağrısı yaptım AMA hala cevap yok
+  → STOP
+  → Kullanıcıya sor: "Şu kadar araştırma yaptım, daha fazla mı yoksa farklı yaklaşım mı?"
+
+EĞER skill invoke edilmesi gerekiyordu AMA etmedim
+  → Kullanıcıya özür: "Skill atlayarak hata yaptım, şimdi invoke ediyorum"
+  → Skill invoke et
+
+EĞER memory check yapmadım
+  → Kullanıcıya bildir: "Memory check yapılmadı, şimdi yapıyorum"
+  → serena list_memories
+
+EĞER TodoWrite gerekiyordu AMA oluşturmadım
+  → Hemen oluştur, retroaktif adımları ekle
+```
+
+**Örnek Enforcement**:
+
+```
+❌ YANLIŞ:
+User: "Polen KSeF hatası"
+Assistant: [Direk serena find_symbol çağırıyor]
+
+❓ Sorun: Memory check yok, skill yok, decision tree takip edilmedi
+
+✅ DOĞRU:
+User: "Polen KSeF hatası"
+Assistant:
+  [✓] serena list_memories
+  [✓] Decision Tree → Code debug
+  [✓] /sc:troubleshoot skill invoke
+  [✓] TodoWrite oluştur
+  [✓] serena find_symbol → PLInvoiceSchedulerService
+  [✓] dbhub search_objects → poland_certificate
+  [✓] Synthesis
+```
+
+---
+
 ### Intent Belirleme Soruları
 
 ```
