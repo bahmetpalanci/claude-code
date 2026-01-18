@@ -469,26 +469,6 @@ Claude: [legacy-modernizer spawn] → Records, pattern matching, virtual threads
 
 ---
 
-## claude-notifications-go@claude-notifications-go
-**Durum:** ✅ Aktif
-
-**Ne Yapar:** Desktop notifications - uzun işlemler bittiğinde bildirim gönderir.
-
-**Komutlar:**
-| Komut | Kullanım |
-|-------|----------|
-| `/notifications-init` | Notification binary'yi indir ve kur |
-| `/notifications-settings` | Ses ve görsel ayarları yapılandır |
-
-**Kurulum:**
-```
-1. /notifications-init çalıştır
-2. Binary indirilir
-3. /notifications-settings ile özelleştir
-```
-
----
-
 # KARAR MATRİSİ
 
 ```
