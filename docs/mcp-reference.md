@@ -16,7 +16,7 @@ claude mcp remove <name>     # MCP kaldır
 
 ## serena (oraios/serena)
 **Repo:** https://github.com/oraios/serena
-**Durum:** ⚠️ Config'de var, bağlantı kontrol edilmeli
+**Durum:** ✅ Proje bazlı (proje dizininde aktif olur)
 
 **Ne Zaman Kullan:**
 - Tek sembol/metot/sınıf analizi
@@ -41,7 +41,7 @@ claude mcp remove <name>     # MCP kaldır
 
 ## chrome-devtools-mcp
 **Repo:** https://github.com/nicobytes/chrome-devtools-mcp
-**Durum:** ⚠️ Config'de var, bağlantı kontrol edilmeli
+**Durum:** ✅ Proje bazlı (Chrome remote debugging açıkken aktif)
 
 **Ne Zaman Kullan:**
 - UI/Browser debugging
