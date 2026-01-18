@@ -25,9 +25,12 @@ plugins/
 # Project-specific data (sensitive)
 projects/
 
+# MCP config (contains API keys)
+mcp.json
+
 # Track these:
 # - CLAUDE.md (global instructions)
-# - mcp.json (MCP server config)
+# - mcp.json.example (MCP template without secrets)
 # - scripts/ (custom scripts)
 # - settings.json (user settings)
 # - commands/ (custom commands)

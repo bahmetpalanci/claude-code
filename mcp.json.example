@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "claude-flow": {
+      "command": "/Users/bap/.claude/scripts/claude-flow-mcp.sh",
+      "args": [],
+      "description": "Claude Flow - Multi-agent orchestration platform"
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"],
+      "description": "Chrome DevTools MCP - Browser debugging and automation"
+    },
+    "git-mcp": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://gitmcp.io/docs"],
+      "description": "Git MCP - GitHub documentation fetch via SSE bridge"
+    },
+    "serena": {
+      "command": "/Users/bap/.local/bin/uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "claude-code"],
+      "description": "Serena - Code analysis and refactoring"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOUR_GITHUB_TOKEN>"
+      },
+      "description": "GitHub MCP - Repository management, PRs, issues, search"
+    },
+    "tavily": {
+      "command": "npx",
+      "args": ["-y", "tavily-mcp@latest"],
+      "env": {
+        "TAVILY_API_KEY": "<YOUR_TAVILY_KEY>"
+      },
+      "description": "Tavily MCP - Real-time web search, extract, crawl"
+    }
+  }
+}

@@ -123,6 +123,58 @@ claude mcp add dbhub -- npx -y @bytebase/dbhub --dsn "postgres://user:pass@local
 
 ---
 
+## github (@modelcontextprotocol/server-github)
+**NPM:** @modelcontextprotocol/server-github
+**Durum:** ✅ Aktif
+
+**Ne Zaman Kullan:**
+- GitHub repo yönetimi
+- PR oluşturma/inceleme
+- Issue yönetimi
+- Kod arama (GitHub API)
+- Branch/commit işlemleri
+
+**Temel Araçlar:**
+| Tool | Kullanım |
+|------|----------|
+| `create_or_update_file` | Dosya oluştur/güncelle |
+| `push_files` | Çoklu dosya push |
+| `create_repository` | Yeni repo oluştur |
+| `create_issue` | Issue aç |
+| `create_pull_request` | PR oluştur |
+| `search_repositories` | Repo ara |
+| `search_code` | Kod ara |
+| `fork_repository` | Repo fork'la |
+
+**git-mcp vs github MCP:**
+- `git-mcp`: Sadece docs fetch (read-only)
+- `github`: Full GitHub API (create, update, delete)
+
+---
+
+## tavily (tavily-mcp)
+**NPM:** tavily-mcp
+**Durum:** ✅ Aktif
+
+**Ne Zaman Kullan:**
+- Real-time web search (WebSearch'ten güçlü)
+- Web sayfası içerik çıkarma
+- Site crawl
+- Güncel bilgi gerektiren sorgular
+
+**Temel Araçlar:**
+| Tool | Kullanım |
+|------|----------|
+| `search` | Web arama |
+| `extract` | Sayfa içeriği çıkar |
+| `crawl` | Site tarama |
+
+**WebSearch vs Tavily:**
+- `WebSearch`: Claude built-in, basit aramalar
+- `Tavily`: Daha derin arama, extract, crawl desteği
+
+---
+
 ## repomix (yamadashy/repomix)
 **Repo:** https://github.com/yamadashy/repomix
 **Durum:** CLI olarak kullanılıyor (MCP kurulu değil)
