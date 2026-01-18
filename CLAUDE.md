@@ -74,6 +74,49 @@
 
 ---
 
+## 🤖 Otomatik Agent Tetikleme (ZORUNLU)
+
+**Aşağıdaki durumlarda ilgili agent'ı SPAWN ET:**
+
+### Dil/Framework Bazlı
+| Tespit | Agent | Tetikleyici |
+|--------|-------|-------------|
+| Java/Spring/Maven dosyası | `jvm-languages:java-pro` | `.java`, `pom.xml`, Spring annotation |
+| Scala/Akka/sbt dosyası | `jvm-languages:scala-pro` | `.scala`, `build.sbt` |
+| C#/.NET dosyası | `jvm-languages:csharp-pro` | `.cs`, `.csproj` |
+
+### Görev Bazlı
+| Prompt İçeriği | Agent | Ne Zaman |
+|----------------|-------|----------|
+| API tasarla, endpoint, REST, microservice | `backend-development:backend-architect` | Yeni API/servis tasarımı |
+| GraphQL, schema, federation | `backend-development:graphql-architect` | GraphQL işleri |
+| event sourcing, CQRS, event store | `backend-development:event-sourcing-architect` | Event-driven mimari |
+| workflow, saga, Temporal | `backend-development:temporal-python-pro` | Long-running process |
+| güvenlik taraması, vulnerability, SAST | `security-scanning:security-auditor` | Güvenlik analizi |
+| threat model, attack surface | `security-scanning:threat-modeling-expert` | Tehdit modelleme |
+| GDPR, HIPAA, SOC2, compliance | `security-compliance:security-auditor` | Uyumluluk kontrolü |
+| legacy, modernize, Java 8→21 | `code-refactoring:legacy-modernizer` | Eski kod güncelleme |
+| test coverage, test automation | `codebase-cleanup:test-automator` | Test altyapısı |
+| code review, kalite kontrolü | `codebase-cleanup:code-reviewer` | Kod inceleme |
+| secure coding, input validation | `backend-api-security:backend-security-coder` | Güvenli kod yazma |
+
+### Tetikleme Kuralı
+```
+1. Prompt'u analiz et
+2. Yukarıdaki tablolardan eşleşme var mı?
+3. EVET → Agent spawn et: Task(subagent_type="plugin:agent-name", prompt="...")
+4. Agent sonucunu kullan
+```
+
+**Örnek:**
+```
+Kullanıcı: "Bu Spring Boot servisine yeni endpoint ekle"
+→ Java dosyası + Spring + endpoint = java-pro + backend-architect
+→ Task(subagent_type="jvm-languages:java-pro", prompt="Spring Boot endpoint ekle...")
+```
+
+---
+
 ## Karmaşıklık → Tracking
 
 | Durum | TodoWrite | Planning Files |
