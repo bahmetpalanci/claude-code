@@ -1,12 +1,16 @@
 # Claude Code Global Instructions
 
-## SESSION BAŞLANGIÇ (ZORUNLU)
+## SESSION BAŞLANGIÇ (ZORUNLU - İLK PROMPT)
 
+**Proje dizinindeysen (serena bağlıysa):**
 ```
-1. Proje dizinindeysen → serena list_memories (ilgili memory varsa oku)
-2. task_plan.md varsa → "Yarım kalan görev var" bildir
-3. Prompt'u analiz et → Aşağıdaki tablolara bak
+1. serena list_memories → MUTLAKA çağır
+2. Sonucu tara → İlgili memory varsa oku (project_overview, style_conventions, vb.)
+3. task_plan.md varsa → "Yarım kalan görev var" bildir
+4. Prompt'u analiz et → Aşağıdaki tablolara bak
 ```
+
+**Not:** Bu adımlar sadece session'ın İLK prompt'unda yapılır, sonrakilerde gerek yok.
 
 ---
 
