@@ -10,7 +10,16 @@
 4. Prompt'u analiz et → Aşağıdaki tablolara bak
 ```
 
-**Not:** Bu adımlar sadece session'ın İLK prompt'unda yapılır, sonrakilerde gerek yok.
+---
+
+## ⚠️ BELİRSİZLİK KURALI (EN ÖNEMLİ)
+
+**Eğer:**
+- Hangi tool/skill/agent kullanacağından emin değilsen
+- Birden fazla yaklaşım mümkünse
+- Kullanıcının niyeti net değilse
+
+**→ AskUserQuestion tool'unu kullan, seçenekleri sun, TAHMİN ETME**
 
 ---
 
@@ -18,10 +27,10 @@
 
 | Kural | Detay |
 |-------|-------|
+| **Belirsizlik** | Emin değilsen → AskUserQuestion ile sor |
 | **Skill** | %1 ihtimal bile olsa invoke et |
 | **3-Strike** | 3 denemede çözemediysen → Kullanıcıya sor |
 | **Test/Build** | Kullanıcı izni gerekli |
-| **Major karar** | Birden fazla yaklaşım → Kullanıcıya sor |
 | **~/.claude repo** | Her değişiklik sonrası commit & push |
 
 ### Güvenlik - ASLA Commit Etme
@@ -31,32 +40,17 @@
 
 ---
 
-## Explicit Komutlar (Kullanıcı Söylediğinde)
-
-| Kullanıcı Ne Diyor | Ne Yap |
-|--------------------|--------|
-| "repomix kullan/ile" | `repomix --token-count-tree` veya `repomix --compress` |
-| "planning-with-files" | `Skill("planning-with-files:planning-with-files")` |
-| "brainstorming yap" | `Skill("superpowers:brainstorming")` |
-| "systematic-debugging" | `Skill("superpowers:systematic-debugging")` |
-| "TDD ile" | `Skill("superpowers:test-driven-development")` |
-| "verification" | `Skill("superpowers:verification-before-completion")` |
-| "plan yaz" | `Skill("superpowers:writing-plans")` |
-| "code review" | `Skill("superpowers:requesting-code-review")` |
-
----
-
 ## Domain → Tool Seçimi
 
-| Prompt İçeriği | Domain | İlk Tool |
-|----------------|--------|----------|
-| sayfa, browser, UI, görünüm | UI | chrome-devtools → take_snapshot |
-| tablo, sütun, query, database | Database | dbhub → search_objects |
-| metot, sınıf, fonksiyon + isim | Kod (tek) | serena → find_symbol |
-| proje, yapı, mimari, genel | Kod (geniş) | repomix CLI |
-| library, npm, maven, paket | Harici | git-mcp → fetch_generic_documentation |
-| paralel, multi-agent, aynı anda | Orkestrasyon | claude-flow → agent_spawn |
-| hatırla, önceki, memory, context | Hafıza | serena memories / claude-mem |
+| Prompt İçeriği | İlk Tool |
+|----------------|----------|
+| sayfa, browser, UI | chrome-devtools |
+| tablo, database, SQL | dbhub |
+| tek metot/sınıf + isim | serena find_symbol |
+| proje yapısı, 10+ dosya | repomix CLI |
+| library docs, npm, maven | git-mcp |
+| paralel, aynı anda | claude-flow |
+| memory, önceki context | serena memories |
 
 ---
 
@@ -64,87 +58,25 @@
 
 | Prompt İçeriği | Skill |
 |----------------|-------|
-| hata, çalışmıyor, bozuk, fix | `/sc:troubleshoot` |
-| ekle, yap, oluştur, implement | `/sc:implement` |
-| test, coverage, spec | `/sc:test` |
-| analiz, incele, nasıl | `/sc:analyze` |
-| refactor, temizle, iyileştir | `/sc:improve` |
+| hata, çalışmıyor, fix | `/sc:troubleshoot` |
+| ekle, yap, implement | `/sc:implement` |
+| test, coverage | `/sc:test` |
+| analiz, incele | `/sc:analyze` |
+| refactor, iyileştir | `/sc:improve` |
 | commit, push, PR | `/sc:git` |
-| tasarım, mimari | `/sc:design` |
 
 ---
 
-## 🤖 Otomatik Agent Tetikleme (ZORUNLU)
+## Agent Kullanımı
 
-**Aşağıdaki durumlarda ilgili agent'ı SPAWN ET:**
+**Detaylı tetikleme kuralları:** `~/.claude/docs/agent-triggers.md`
 
-### Dil/Framework Bazlı
-| Tespit | Agent | Tetikleyici |
-|--------|-------|-------------|
-| Java/Spring/Maven dosyası | `jvm-languages:java-pro` | `.java`, `pom.xml`, Spring annotation |
-| Scala/Akka/sbt dosyası | `jvm-languages:scala-pro` | `.scala`, `build.sbt` |
-| C#/.NET dosyası | `jvm-languages:csharp-pro` | `.cs`, `.csproj` |
-
-### Görev Bazlı
-| Prompt İçeriği | Agent | Ne Zaman |
-|----------------|-------|----------|
-| API tasarla, endpoint, REST, microservice | `backend-development:backend-architect` | Yeni API/servis tasarımı |
-| GraphQL, schema, federation | `backend-development:graphql-architect` | GraphQL işleri |
-| event sourcing, CQRS, event store | `backend-development:event-sourcing-architect` | Event-driven mimari |
-| workflow, saga, Temporal | `backend-development:temporal-python-pro` | Long-running process |
-| güvenlik taraması, vulnerability, SAST | `security-scanning:security-auditor` | Güvenlik analizi |
-| threat model, attack surface | `security-scanning:threat-modeling-expert` | Tehdit modelleme |
-| GDPR, HIPAA, SOC2, compliance | `security-compliance:security-auditor` | Uyumluluk kontrolü |
-| legacy, modernize, Java 8→21 | `code-refactoring:legacy-modernizer` | Eski kod güncelleme |
-| test coverage, test automation | `codebase-cleanup:test-automator` | Test altyapısı |
-| code review, kalite kontrolü | `codebase-cleanup:code-reviewer` | Kod inceleme |
-| secure coding, input validation | `backend-api-security:backend-security-coder` | Güvenli kod yazma |
-
-### Claude-Flow (Paralel İşler)
-| Durum | Aksiyon |
-|-------|---------|
-| 2+ bağımsız analiz görevi | `claude-flow agent_spawn` ile paralel çalıştır |
-| Birden fazla dosya/modül inceleme | Her biri için ayrı agent spawn et |
-| Test + Lint + Build aynı anda | Paralel agent'lar |
-| "aynı anda", "paralel", "eş zamanlı" | claude-flow kullan |
-
-**Claude-Flow Tetikleyiciler:**
-- "X ve Y'yi aynı anda analiz et"
-- "Paralel çalıştır"
-- "Hem ... hem ..."
-- 3+ dosya/modül analizi
-- Bağımsız görevler listesi
-
-### Tetikleme Kuralı
-```
-1. Prompt'u analiz et
-2. Yukarıdaki tablolardan eşleşme var mı?
-3. EVET → Agent spawn et: Task(subagent_type="plugin:agent-name", prompt="...")
-4. Paralel iş var mı? → claude-flow agent_spawn
-5. Agent sonucunu kullan
-```
-
-**Örnek 1 - Tek Agent:**
-```
-Kullanıcı: "Bu Spring Boot servisine yeni endpoint ekle"
-→ Java dosyası + Spring + endpoint = java-pro + backend-architect
-→ Task(subagent_type="jvm-languages:java-pro", prompt="Spring Boot endpoint ekle...")
-```
-
-**Örnek 2 - Claude-Flow Paralel:**
-```
-Kullanıcı: "src/auth, src/api ve src/models modüllerini analiz et"
-→ 3 bağımsız modül = paralel analiz
-→ claude-flow agent_spawn × 3 (her modül için)
-→ Sonuçları birleştir
-```
-
-**Örnek 3 - Test + Build Paralel:**
-```
-Kullanıcı: "Test çalıştır ve build et"
-→ Test ⊥ Build (bağımsız)
-→ claude-flow ile paralel çalıştır
-```
+**Özet:**
+- Java/Spring → `java-pro` agent
+- API tasarımı → `backend-architect` agent
+- Güvenlik → `security-auditor` agent
+- Paralel iş → `claude-flow`
+- **Belirsiz → AskUserQuestion ile sor**
 
 ---
 
@@ -154,30 +86,18 @@ Kullanıcı: "Test çalıştır ve build et"
 |-------|-----------|----------------|
 | 1-2 adım | Evet | - |
 | 3-5 adım | Evet | Opsiyonel |
-| 6+ adım | Evet | **ZORUNLU** (task_plan.md, findings.md, progress.md) |
+| 6+ adım | Evet | **ZORUNLU** |
 
 ---
 
 ## Referans Dosyaları
 
-Detaylı bilgi gerektiğinde oku:
-
 | Dosya | Ne Zaman |
 |-------|----------|
-| `~/.claude/docs/skill-reference.md` | Skill bulamadığında |
-| `~/.claude/docs/mcp-reference.md` | MCP config/sorun |
-| `~/.claude/docs/cli-reference.md` | CLI komut lazım |
-| `~/.claude/docs/workflows.md` | Kompleks task planı |
-
----
-
-## Hata Durumları
-
-| Hata | Aksiyon |
-|------|---------|
-| MCP disconnect | `claude mcp list` kontrol |
-| 3x tool failure | Kullanıcıya bildir, alternatif öner |
-| Skill bulunamadı | `/sc:help` ile listele |
+| `docs/agent-triggers.md` | Agent seçimi detayları |
+| `docs/skill-reference.md` | Skill listesi |
+| `docs/mcp-reference.md` | MCP/Plugin detayları |
+| `docs/workflows.md` | Kompleks task planı |
 
 ---
 
