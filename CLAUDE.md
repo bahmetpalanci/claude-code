@@ -51,6 +51,8 @@
 | metot, sınıf, fonksiyon + isim | Kod (tek) | serena → find_symbol |
 | proje, yapı, mimari, genel | Kod (geniş) | repomix CLI |
 | library, npm, maven, paket | Harici | git-mcp → fetch_generic_documentation |
+| paralel, multi-agent, aynı anda | Orkestrasyon | claude-flow → agent_spawn |
+| hatırla, önceki, memory, context | Hafıza | serena memories / claude-mem |
 
 ---
 

@@ -1,48 +1,48 @@
 # Skill Reference
 
-> Bu dosya gerektiginde referans amaçlidir. Session'da otomatik yuklenmez.
+> Bu dosya gerektiğinde referans amaçlıdır. Session'da otomatik yüklenmez.
 
 ---
 
 ## SuperClaude (sc:*) - Temel Komutlar
 
-| Kullanici Ne Diyor | Skill | Tracking |
+| Kullanıcı Ne Diyor | Skill | Tracking |
 |--------------------|-------|----------|
-| hata, calismıyor, bozuk, fix | `/sc:troubleshoot` | TodoWrite |
-| ekle, yap, olustur, implement | `/sc:implement` | TodoWrite |
+| hata, çalışmıyor, bozuk, fix | `/sc:troubleshoot` | TodoWrite |
+| ekle, yap, oluştur, implement | `/sc:implement` | TodoWrite |
 | test, coverage, spec | `/sc:test` | TodoWrite |
-| analiz, incele, bak, nasil | `/sc:analyze` | - |
+| analiz, incele, bak, nasıl | `/sc:analyze` | - |
 | commit, push, branch, PR | `/sc:git` | - |
-| refactor, temizle, iyilestir | `/sc:improve` | TodoWrite |
-| guvenlik, security, vulnerability | `/sc:analyze` | TodoWrite |
-| dokumantasyon, README, acikla | `/sc:document` | - |
-| tasarim, mimari, design | `/sc:design` | TodoWrite |
-| brainstorm, dusunelim, tartisalim | `/sc:brainstorm` | - |
+| refactor, temizle, iyileştir | `/sc:improve` | TodoWrite |
+| güvenlik, security, vulnerability | `/sc:analyze` | TodoWrite |
+| dokümantasyon, README, açıkla | `/sc:document` | - |
+| tasarım, mimari, design | `/sc:design` | TodoWrite |
+| brainstorm, düşünelim, tartışalım | `/sc:brainstorm` | - |
 | build, derle, package | `/sc:build` | - |
 | temizle, dead code, cleanup | `/sc:cleanup` | TodoWrite |
-| arastir, bul, research | `/sc:research` | - |
-| tahmin, estimate, ne kadar surer | `/sc:estimate` | - |
-| workflow, PRD, akis | `/sc:workflow` | TodoWrite |
+| araştır, bul, research | `/sc:research` | - |
+| tahmin, estimate, ne kadar sürer | `/sc:estimate` | - |
+| workflow, PRD, akış | `/sc:workflow` | TodoWrite |
 
 ---
 
-## SuperClaude (sc:*) - Ozel Komutlar
+## SuperClaude (sc:*) - Özel Komutlar
 
-| Komut | Aciklama |
+| Komut | Açıklama |
 |-------|----------|
-| `/sc:help` | Tum komutlari listele |
+| `/sc:help` | Tüm komutları listele |
 | `/sc:spawn` | Meta-system task orchestration |
-| `/sc:task` | Kompleks task yurutme |
-| `/sc:index` | Proje dokumantasyonu olustur |
-| `/sc:select-tool` | Akilli MCP tool secimi |
-| `/sc:recommend` | Uygun komut onerisi |
-| `/sc:agent` | Agent yonetimi |
+| `/sc:task` | Kompleks task yürütme |
+| `/sc:index` | Proje dokümantasyonu oluştur |
+| `/sc:select-tool` | Akıllı MCP tool seçimi |
+| `/sc:recommend` | Uygun komut önerisi |
+| `/sc:agent` | Agent yönetimi |
 | `/sc:load` / `/sc:save` | Session lifecycle management |
 | `/sc:reflect` | Task reflection ve validation |
 | `/sc:spec-panel` | Multi-expert specification review |
 | `/sc:business-panel` | Business strategy experts panel |
 | `/sc:index-repo` | Repository indexing (%94 token azaltma) |
-| `/sc:explain` | Kod/kavram aciklama |
+| `/sc:explain` | Kod/kavram açıklama |
 
 ---
 

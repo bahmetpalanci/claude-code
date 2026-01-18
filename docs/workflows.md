@@ -7,23 +7,27 @@
 ## Yeni Özellik Akışı
 
 ```
-1. Gereksinim analizi
+1. Brainstorming (superpowers:brainstorming)
+   └─ Socratic design discovery
+   └─ Alternatif yaklaşımları değerlendir
+
+2. Gereksinim analizi
    ├─ Belirsizlik varsa kullanıcıya sor
    ├─ Library kullanılacaksa → git-mcp ile docs fetch
    └─ DB değişikliği varsa → dbhub ile şema kontrol
 
-2. Planlama
+3. Planlama
    ├─ Basit → Direkt başla
    └─ Kompleks → planning-with-files başlat
 
-3. Implementation
+4. Implementation
    └─ /sc:implement veya direkt kod yaz
 
-4. Doğrulama
+5. Doğrulama
    ├─ Kullanıcı isterse test çalıştır
    └─ Frontend varsa → chrome-devtools ile UI test
 
-5. Tamamlama
+6. Tamamlama
    └─ serena write_memory (milestone ise)
 ```
 
