@@ -167,153 +167,325 @@ claude mcp add dbhub -- npx -y @bytebase/dbhub --dsn "postgres://user:pass@local
 
 # PLUGINS
 
+---
+
 ## superpowers@superpowers-marketplace
 **Durum:** ✅ Aktif
+**Invoke:** `Skill("superpowers:<skill-name>")`
 
-**Skill'ler (Claude Invoke Etmeli):**
-| Tetikleyici | Skill | Invoke |
-|-------------|-------|--------|
-| Feature başlangıcı | brainstorming | `Skill("superpowers:brainstorming")` |
-| Bug fix | systematic-debugging | `Skill("superpowers:systematic-debugging")` |
-| Test yazımı | test-driven-development | `Skill("superpowers:test-driven-development")` |
-| İş bitiminde | verification-before-completion | `Skill("superpowers:verification-before-completion")` |
-| Multi-step task | writing-plans | `Skill("superpowers:writing-plans")` |
-| PR öncesi | requesting-code-review | `Skill("superpowers:requesting-code-review")` |
+### brainstorming
+**Ne Yapar:** Socratic design discovery - feature tasarımı için sorular sorarak gereksinimleri netleştirir.
+**Ne Zaman:** Yeni feature başlangıcında, belirsiz gereksinimler varken.
+**Invoke:** `Skill("superpowers:brainstorming")`
+**Örnek Kullanım:**
+```
+Kullanıcı: "Kullanıcı yetkilendirme sistemi ekle"
+Claude: [brainstorming invoke] → OAuth mı, JWT mi? Role-based mi? Session süresi?
+```
+
+### systematic-debugging
+**Ne Yapar:** 4 fazlı root cause analysis - hipotez oluştur, test et, doğrula, düzelt.
+**Ne Zaman:** Bug fix başlangıcında, özellikle karmaşık/belirsiz hatalarda.
+**Invoke:** `Skill("superpowers:systematic-debugging")`
+**Örnek Kullanım:**
+```
+Kullanıcı: "Login çalışmıyor"
+Claude: [systematic-debugging invoke] → Reproduce → Hipotez → Test → Fix
+```
+
+### test-driven-development
+**Ne Yapar:** RED-GREEN-REFACTOR döngüsü - önce test yaz, sonra implement et.
+**Ne Zaman:** Yeni feature veya bug fix yazarken TDD isterse.
+**Invoke:** `Skill("superpowers:test-driven-development")`
+**Örnek Kullanım:**
+```
+Kullanıcı: "TDD ile payment service yaz"
+Claude: [TDD invoke] → Test yaz (RED) → Implement (GREEN) → Refactor
+```
+
+### verification-before-completion
+**Ne Yapar:** İş bitiminde gerçekten çalışıyor mu kontrol eder.
+**Ne Zaman:** Görev tamamlandığında, PR öncesinde.
+**Invoke:** `Skill("superpowers:verification-before-completion")`
+**Örnek Kullanım:**
+```
+Claude: "İşlem tamam"
+Claude: [verification invoke] → Test çalıştır, build kontrol, edge case'ler
+```
+
+### writing-plans
+**Ne Yapar:** Multi-step task için detaylı plan oluşturur.
+**Ne Zaman:** Kompleks görevlerde (6+ adım), belirsiz scope'da.
+**Invoke:** `Skill("superpowers:writing-plans")`
+**Örnek Kullanım:**
+```
+Kullanıcı: "Microservice'e geç"
+Claude: [writing-plans invoke] → Fazlar, bağımlılıklar, checkpoint'ler
+```
+
+### executing-plans
+**Ne Yapar:** Yazılmış planı adım adım execute eder, checkpoint'lerde durur.
+**Ne Zaman:** Plan yazıldıktan sonra implementation aşamasında.
+**Invoke:** `Skill("superpowers:executing-plans")`
+
+### requesting-code-review
+**Ne Yapar:** PR öncesi self-review checklist'i uygular.
+**Ne Zaman:** Kod tamamlandığında, PR açmadan önce.
+**Invoke:** `Skill("superpowers:requesting-code-review")`
+
+### receiving-code-review
+**Ne Yapar:** Code review feedback'ini işler, düzeltmeleri uygular.
+**Ne Zaman:** PR'a review geldiğinde.
+**Invoke:** `Skill("superpowers:receiving-code-review")`
+
+### using-git-worktrees
+**Ne Yapar:** İzole git worktree oluşturur, paralel branch çalışması sağlar.
+**Ne Zaman:** Feature isolation gerektiğinde, main'i bozmadan çalışmak için.
+**Invoke:** `Skill("superpowers:using-git-worktrees")`
+
+### dispatching-parallel-agents
+**Ne Yapar:** Bağımsız task'ları paralel agent'lara dağıtır.
+**Ne Zaman:** 2+ bağımsız iş varsa, hız kazanmak için.
+**Invoke:** `Skill("superpowers:dispatching-parallel-agents")`
+
+### writing-skills
+**Ne Yapar:** Yeni skill dosyası oluşturur veya mevcut skill'i düzenler.
+**Ne Zaman:** Custom skill yazmak gerektiğinde.
+**Invoke:** `Skill("superpowers:writing-skills")`
 
 ---
 
 ## planning-with-files@planning-with-files
 **Durum:** ✅ Aktif
+**Invoke:** `Skill("planning-with-files:planning-with-files")`
 
-**Tetikleme Kriterleri:**
+**Ne Yapar:** Manus-style file-based planning - kompleks task'ları dosyalarda track eder.
+
+**Ne Zaman Kullan:**
 - 6+ adım gerektiren görev
-- Multi-session iş
+- Multi-session iş (yarın devam edeceksen)
 - 3+ dosya değişikliği
+- Araştırma + implementation karışık görevler
 
 **Oluşturduğu Dosyalar:**
-| Dosya | Amaç |
-|-------|------|
-| `task_plan.md` | Fazlar, ilerleme |
-| `findings.md` | Araştırma bulguları |
-| `progress.md` | Session log |
+| Dosya | İçerik |
+|-------|--------|
+| `task_plan.md` | Ana plan: fazlar, hedefler, bağımlılıklar |
+| `findings.md` | Araştırma bulguları, keşfedilen bilgiler |
+| `progress.md` | Session log, tamamlanan/kalan adımlar |
+
+**Örnek Akış:**
+```
+1. Kullanıcı: "Authentication sistemi kur"
+2. Claude: [planning-with-files invoke]
+3. → task_plan.md oluştur (5 faz)
+4. → Her faz sonunda progress.md güncelle
+5. → Session bitince findings.md'ye öğrenilenleri yaz
+6. → Sonraki session: task_plan.md oku, kaldığı yerden devam
+```
 
 ---
 
 ## code-review@claude-plugins-official
 **Durum:** ✅ Aktif
+**Invoke:** `/code-review` veya `Skill("code-review:code-review")`
 
-**Komutlar:**
-| Komut | Kullanım |
-|-------|----------|
-| `/code-review` | PR code review |
+**Ne Yapar:** PR code review - değişiklikleri inceler, sorunları tespit eder.
+
+**Ne Zaman Kullan:**
+- PR açıldığında veya açmadan önce
+- Başkasının kodunu incelemek için
+- Self-review için
+
+**Örnek Kullanım:**
+```
+Kullanıcı: "/code-review" veya "PR #123'ü incele"
+Claude: [code-review invoke] → Diff analiz, security check, best practice kontrol
+```
 
 ---
 
 ## jvm-languages@wshobson-agents
 **Durum:** ✅ Aktif
 
-**Agent'lar:**
-| Agent | Kullanım |
-|-------|----------|
-| `jvm-languages:java-pro` | Java 21+, Spring Boot 3.x |
-| `jvm-languages:scala-pro` | Scala, Akka, ZIO |
-| `jvm-languages:csharp-pro` | C#, .NET |
+### java-pro
+**Ne Yapar:** Java 21+ expert - virtual threads, pattern matching, Spring Boot 3.x.
+**Ne Zaman:** Java projelerinde, modern Java özellikleri gerektiğinde.
+**Invoke:** `Task` tool ile `subagent_type="jvm-languages:java-pro"`
+**Örnek:**
+```
+Kullanıcı: "Spring Boot 3 ile REST API yaz"
+Claude: [java-pro agent spawn] → Modern Java patterns, records, sealed classes
+```
+
+### scala-pro
+**Ne Yapar:** Scala expert - Akka, ZIO, Cats Effect, functional programming.
+**Ne Zaman:** Scala projelerinde, FP patterns gerektiğinde.
+**Invoke:** `Task` tool ile `subagent_type="jvm-languages:scala-pro"`
+
+### csharp-pro
+**Ne Yapar:** C# expert - records, pattern matching, async/await, .NET.
+**Ne Zaman:** .NET projelerinde.
+**Invoke:** `Task` tool ile `subagent_type="jvm-languages:csharp-pro"`
 
 ---
 
 ## backend-development@wshobson-agents
 **Durum:** ✅ Aktif
 
-**Agent'lar:**
-| Agent | Kullanım |
-|-------|----------|
-| `backend-architect` | API design, microservices |
-| `graphql-architect` | GraphQL federation |
-| `event-sourcing-architect` | Event sourcing |
-| `tdd-orchestrator` | TDD workflow |
-| `temporal-python-pro` | Temporal workflows |
+### Agents
 
-**Skill'ler:**
-| Skill | Kullanım |
-|-------|----------|
-| `api-design-principles` | REST/GraphQL design |
-| `architecture-patterns` | Clean/Hexagonal/DDD |
-| `microservices-patterns` | Microservices |
-| `cqrs-implementation` | CQRS pattern |
-| `saga-orchestration` | Distributed transactions |
+**backend-architect**
+- **Ne Yapar:** API design, microservices architecture, distributed systems
+- **Ne Zaman:** Yeni backend servisi tasarlarken, API endpoint'leri planlarken
+- **Invoke:** `Task` tool ile `subagent_type="backend-development:backend-architect"`
+
+**graphql-architect**
+- **Ne Yapar:** GraphQL federation, schema design, performance optimization
+- **Ne Zaman:** GraphQL API tasarımında, federation kurulumunda
+- **Invoke:** `Task` tool ile `subagent_type="backend-development:graphql-architect"`
+
+**event-sourcing-architect**
+- **Ne Yapar:** Event sourcing infrastructure, event store design
+- **Ne Zaman:** Event-driven architecture kurulumunda
+- **Invoke:** `Task` tool ile `subagent_type="backend-development:event-sourcing-architect"`
+
+**tdd-orchestrator**
+- **Ne Yapar:** TDD workflow coordination, test-first development
+- **Ne Zaman:** Takım genelinde TDD uygulamak için
+- **Invoke:** `Task` tool ile `subagent_type="backend-development:tdd-orchestrator"`
+
+**temporal-python-pro**
+- **Ne Yapar:** Temporal workflow orchestration, saga patterns, Python SDK
+- **Ne Zaman:** Long-running processes, distributed transactions
+- **Invoke:** `Task` tool ile `subagent_type="backend-development:temporal-python-pro"`
+
+### Skills (Invoke ile)
+
+| Skill | Ne Yapar | Invoke |
+|-------|----------|--------|
+| `api-design-principles` | REST/GraphQL API design best practices | `Skill("backend-development:api-design-principles")` |
+| `architecture-patterns` | Clean/Hexagonal/DDD patterns | `Skill("backend-development:architecture-patterns")` |
+| `microservices-patterns` | Service mesh, resilience patterns | `Skill("backend-development:microservices-patterns")` |
+| `cqrs-implementation` | Command Query Responsibility Segregation | `Skill("backend-development:cqrs-implementation")` |
+| `saga-orchestration` | Distributed transaction patterns | `Skill("backend-development:saga-orchestration")` |
+| `workflow-orchestration-patterns` | Durable workflow design | `Skill("backend-development:workflow-orchestration-patterns")` |
 
 ---
 
 ## security-scanning@wshobson-agents
 **Durum:** ✅ Aktif
 
-**Agent'lar:**
-| Agent | Kullanım |
-|-------|----------|
-| `security-auditor` | DevSecOps, compliance |
-| `threat-modeling-expert` | Threat modeling |
+### Agents
 
-**Skill'ler:**
-| Skill | Kullanım |
-|-------|----------|
-| `security-sast` | Static code analysis |
-| `attack-tree-construction` | Threat path mapping |
-| `stride-analysis-patterns` | STRIDE methodology |
-| `threat-mitigation-mapping` | Control mapping |
+**security-auditor**
+- **Ne Yapar:** DevSecOps, vulnerability assessment, compliance (GDPR/HIPAA/SOC2)
+- **Ne Zaman:** Security audit gerektiğinde, compliance kontrolü için
+- **Invoke:** `Task` tool ile `subagent_type="security-scanning:security-auditor"`
+
+**threat-modeling-expert**
+- **Ne Yapar:** Threat modeling, attack surface analysis
+- **Ne Zaman:** Yeni sistem tasarımında güvenlik analizi için
+- **Invoke:** `Task` tool ile `subagent_type="security-scanning:threat-modeling-expert"`
+
+### Skills (Invoke ile)
+
+| Skill | Ne Yapar | Invoke |
+|-------|----------|--------|
+| `security-sast` | Static Application Security Testing | `Skill("security-scanning:security-sast")` |
+| `attack-tree-construction` | Threat path visualization | `Skill("security-scanning:attack-tree-construction")` |
+| `stride-analysis-patterns` | STRIDE methodology application | `Skill("security-scanning:stride-analysis-patterns")` |
+| `threat-mitigation-mapping` | Threat → Control mapping | `Skill("security-scanning:threat-mitigation-mapping")` |
+| `sast-configuration` | SAST tool setup | `Skill("security-scanning:sast-configuration")` |
+| `security-requirement-extraction` | Security requirements from threats | `Skill("security-scanning:security-requirement-extraction")` |
 
 ---
 
 ## codebase-cleanup@wshobson-agents
 **Durum:** ✅ Aktif
 
-**Agent'lar:**
-| Agent | Kullanım |
-|-------|----------|
-| `code-reviewer` | Code quality review |
-| `test-automator` | Test automation |
+### Agents
+
+**code-reviewer**
+- **Ne Yapar:** AI-powered code analysis, security vulnerabilities, performance issues
+- **Ne Zaman:** Kod kalitesi incelemesi gerektiğinde
+- **Invoke:** `Task` tool ile `subagent_type="codebase-cleanup:code-reviewer"`
+
+**test-automator**
+- **Ne Yapar:** Test automation, self-healing tests, CI/CD integration
+- **Ne Zaman:** Test coverage artırmak, test altyapısı kurmak için
+- **Invoke:** `Task` tool ile `subagent_type="codebase-cleanup:test-automator"`
 
 ---
 
 ## code-refactoring@wshobson-agents
 **Durum:** ✅ Aktif
 
-**Agent'lar:**
-| Agent | Kullanım |
-|-------|----------|
-| `code-reviewer` | Refactoring review |
-| `legacy-modernizer` | Legacy code update |
+### Agents
+
+**code-reviewer**
+- **Ne Yapar:** Refactoring review, clean code principles
+- **Ne Zaman:** Refactoring sonrası review için
+- **Invoke:** `Task` tool ile `subagent_type="code-refactoring:code-reviewer"`
+
+**legacy-modernizer**
+- **Ne Yapar:** Legacy code update, framework migrations, tech debt reduction
+- **Ne Zaman:** Eski kodu modernize etmek için
+- **Invoke:** `Task` tool ile `subagent_type="code-refactoring:legacy-modernizer"`
+
+**Örnek Kullanım:**
+```
+Kullanıcı: "Bu Java 8 kodunu Java 21'e güncelle"
+Claude: [legacy-modernizer spawn] → Records, pattern matching, virtual threads
+```
 
 ---
 
 ## backend-api-security@wshobson-agents
 **Durum:** ✅ Aktif
 
-**Agent'lar:**
-| Agent | Kullanım |
-|-------|----------|
-| `backend-architect` | Scalable API design |
-| `backend-security-coder` | Secure backend coding |
+### Agents
+
+**backend-architect**
+- **Ne Yapar:** Scalable API design with security focus
+- **Invoke:** `Task` tool ile `subagent_type="backend-api-security:backend-architect"`
+
+**backend-security-coder**
+- **Ne Yapar:** Secure backend coding - input validation, auth, API security
+- **Ne Zaman:** Backend security implementation için
+- **Invoke:** `Task` tool ile `subagent_type="backend-api-security:backend-security-coder"`
 
 ---
 
 ## security-compliance@wshobson-agents
 **Durum:** ✅ Aktif
 
-**Agent'lar:**
-| Agent | Kullanım |
-|-------|----------|
-| `security-auditor` | GDPR/HIPAA/SOC2 |
+### Agents
+
+**security-auditor**
+- **Ne Yapar:** GDPR/HIPAA/SOC2 compliance check, incident response
+- **Ne Zaman:** Compliance audit gerektiğinde
+- **Invoke:** `Task` tool ile `subagent_type="security-compliance:security-auditor"`
 
 ---
 
 ## claude-notifications-go@claude-notifications-go
 **Durum:** ✅ Aktif
 
+**Ne Yapar:** Desktop notifications - uzun işlemler bittiğinde bildirim gönderir.
+
 **Komutlar:**
 | Komut | Kullanım |
 |-------|----------|
-| `/notifications-init` | Binary indir |
-| `/notifications-settings` | Ayarları yapılandır |
+| `/notifications-init` | Notification binary'yi indir ve kur |
+| `/notifications-settings` | Ses ve görsel ayarları yapılandır |
+
+**Kurulum:**
+```
+1. /notifications-init çalıştır
+2. Binary indirilir
+3. /notifications-settings ile özelleştir
+```
 
 ---
 
