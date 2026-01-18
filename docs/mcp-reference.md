@@ -6,9 +6,12 @@
 
 ```bash
 claude mcp list              # Bağlı MCP'leri göster
-claude mcp add <name> -- ... # MCP ekle
+claude mcp add <name> -s user -- ...  # Global MCP ekle
+claude mcp add <name> -- ... # Proje bazlı MCP ekle
 claude mcp remove <name>     # MCP kaldır
 ```
+
+**Config Lokasyonu:** `~/.claude.json` → `mcpServers` (global) veya `projects[path].mcpServers` (proje bazlı)
 
 ---
 
